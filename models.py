@@ -12,6 +12,7 @@ from pandas import DataFrame, date_range
 class Currency(models.Model):
     """
     Represents a currency according to ISO 4217 standards.
+    Examples include United States Dollars (USD) or Euros (EUR).
     """
 
     name = models.CharField(max_length=255)
