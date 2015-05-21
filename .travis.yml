@@ -8,5 +8,7 @@ install:
 script:
   - cd forex/tests
   - ./runtests.py
+  - mv .coverage ../../
+  - cd ../../
 after_success: 
   - coveralls
