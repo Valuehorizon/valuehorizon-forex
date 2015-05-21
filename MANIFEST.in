@@ -1,0 +1,10 @@
+include AUTHORS
+include LICENSE
+include DESCRIPTION
+include CHANGELOG.txt
+include README.md
+include tox.ini
+graft forex
+global-exclude *.orig *.pyc *.log *.swp local_settings.py
+prune forex/tests/coverage
+prune forex/.ropeproject
