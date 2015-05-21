@@ -13,3 +13,7 @@ class DummyModelTestCase(TestCase):
     def test_model(self):
         # self.assertTrue(self.obj.pk)
         self.assertTrue(True)
+
+
+class CurrencyModelTests(TestCase):
+    
