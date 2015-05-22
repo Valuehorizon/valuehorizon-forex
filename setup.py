@@ -64,4 +64,5 @@ setup(
     extras_require={
         'dev': dev_requires,
     },
+    test_suite="forex.tests.runtests.runtests"
 )

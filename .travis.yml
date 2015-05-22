@@ -6,8 +6,8 @@ install:
   - pip install coveralls
   - python setup.py install
 script:
+  - coverage run -a setup.py test
   - cd forex/tests
-  - ./runtests.py
   - mv .coverage ../../
   - cd ../../
 after_success: 
