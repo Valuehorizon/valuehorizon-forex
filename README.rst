@@ -4,8 +4,8 @@ Forex, by Valuehorizon
 
 .. image:: https://travis-ci.org/Valuehorizon/valuehorizon-forex.svg?branch=master
    :target: https://travis-ci.org/Valuehorizon/valuehorizon-forex
-.. image:: https://coveralls.io/repos/Valuehorizon/forex/badge.svg
-   :target: https://coveralls.io/r/Valuehorizon/forex
+.. image:: https://coveralls.io/repos/Valuehorizon/valuehorizon-forex/badge.svg
+   :target: https://coveralls.io/r/Valuehorizon/valuehorizon-forex
 .. image:: https://codeclimate.com/github/Valuehorizon/valuehorizon-forex/badges/gpa.svg
    :target: https://codeclimate.com/github/Valuehorizon/valuehorizon-forex
 
