@@ -12,7 +12,6 @@ from pandas import DataFrame, date_range
 class Currency(models.Model):
     """
     Represents a currency according to ISO 4217 standards.
-    Examples include United States Dollars (USD) or Euros (EUR).
     """
 
     name = models.CharField(max_length=255)
@@ -25,7 +24,7 @@ class Currency(models.Model):
     class Meta:
         verbose_name_plural = 'Currencies'
         verbose_name = 'Currency'
-        ordering = ['symbol', ]
+        ordering = ['name', 'symbol']
 
     def __unicode__(self):
         return u'%s %s %s' % (unicode(self.name), unicode(',  '), unicode(self.symbol))
@@ -149,10 +148,21 @@ class CurrencyPrices(models.Model):
         Generates name
         """
         
-        if self.ask_price != None and self.ask_price != 0:
-            self.ask_price_us = 1 / Decimal(str(self.ask_price))
-        if self.bid_price != None and self.bid_price != 0:
-            self.bid_price_us = 1 / Decimal(str(self.bid_price))
+        if self.ask_price != None:
+            if self.ask_price != 0:
+                self.ask_price_us = 1 / Decimal(str(self.ask_price))
+            else:
+                raise ZeroDivisionError('Ask price is zero')
+        else:
+            raise ValueError('Ask price must be specified')
+        
+        if self.bid_price != None:
+            if self.bid_price != 0:
+                self.bid_price_us = 1 / Decimal(str(self.bid_price))
+            else:
+                raise ZeroDivisionError('Bid price is zero')
+        else:
+            raise ValueError('Bid price must be specified')
         
         super(CurrencyPrices, self).save(*args, **kwargs) # Call the "real" save() method.
 
