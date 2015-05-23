@@ -8,7 +8,5 @@ install:
 script:
   - coverage run -a setup.py test
   - cd forex/tests
-  - mv .coverage ../../
-  - cd ../../
 after_success: 
   - coveralls
