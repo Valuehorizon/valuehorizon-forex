@@ -1,10 +1,11 @@
 """Tests for the models of the forex app."""
 from django.test import TestCase
-from ..models import Currency, CurrencyPrices
+from django.core.validators import ValidationError
 from datetime import date
 from decimal import Decimal
 
-# from . import factories
+# Import models
+from ..models import Currency, CurrencyPrices
 
 
 class DummyModelTestCase(TestCase):
@@ -38,6 +39,11 @@ class CurrencyModelTests(TestCase):
             ask_price = 7,
             bid_price = 8)
 
+    def field_tests(self):
+        required_fields = [u'id', 'name', 'symbol', 'ascii_symbol', 'num_code', 'digits', 'description']
+        actual_fields = [field.name for field in Currency._meta.fields]
+        self.assertEqual(set(required_fields), set(actual_fields))
+
     def test_dataframe_generation_base(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
         df = test_curr1.generate_dataframe()
@@ -66,7 +72,27 @@ class CurrencyPriceModelTests(TestCase):
             date=date(2015,1,1),
             ask_price = 3,
             bid_price = 4)
+
+    def field_tests(self):
+        required_fields = ['id', 'currency', 'date', 'ask_price', 'bid_price']
+        actual_fields = [field.name for field in CurrencyPrices._meta.fields]
+        self.assertEqual(set(required_fields), set(actual_fields))
+
+    def test_ask_price_min_validation(self):
+        test_curr1 = Currency.objects.get(symbol="TEST")
+        price = CurrencyPrices.objects.get(currency=test_curr1, date=date(2015,1,1))
+        price.ask_price = 0
+        price.save()
+        self.assertEqual(price.ask_price, Decimal('0'))
+
+        price.ask_price = -1
+        # try:
+        #     price.save()
+        #     raise AssertionError("Ask Price cannot be less than zero")
+        # except ValidationError:
+        #     pass
         
+
     def test_mid_price(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
         price = CurrencyPrices.objects.get(currency=test_curr1, date=date(2015,1,1))
@@ -74,21 +100,6 @@ class CurrencyPriceModelTests(TestCase):
         price.bid_price = 4
         price.save()
         self.assertEqual(price.mid_price, Decimal('3.5'))
-
-    def test_mid_price_negative(self):
-        test_curr1 = Currency.objects.get(symbol="TEST")
-        price = CurrencyPrices.objects.get(currency=test_curr1, date=date(2015,1,1))
-        price.ask_price = -1
-        price.bid_price = 4
-        price.save()
-        midprice = price.mid_price
-        self.assertEqual(midprice, Decimal('1.5'))
-
-        price.ask_price = 2
-        price.bid_price = -8
-        price.save()
-        self.assertEqual(price.mid_price, Decimal('-3'))
-
 
     def test_ask_us(self):
         test_curr1 = Currency.objects.get(symbol="TEST")

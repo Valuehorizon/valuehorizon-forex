@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Manager
+from django.core.validators import MinValueValidator
 
 # Import misc packages
 import numpy as np
@@ -92,8 +93,11 @@ class CurrencyPrices(models.Model):
     date = models.DateField()
     
     # Price Data per $1 of US
-    ask_price = models.DecimalField(max_digits=20, decimal_places=4,)
-    bid_price = models.DecimalField(max_digits=20, decimal_places=4, blank=True, null=True)
+    ask_price = models.DecimalField(max_digits=20, decimal_places=4,
+                                    validators=[MinValueValidator(Decimal('0.00'))])
+    bid_price = models.DecimalField(max_digits=20, decimal_places=4,
+                                    validators=[MinValueValidator(Decimal('0.00'))],
+                                    blank=True, null=True)
     
     # Add custom managers
     objects=CurrencyPricesManager()
