@@ -9,7 +9,11 @@ Forex, by Valuehorizon
 .. image:: https://codeclimate.com/github/Valuehorizon/valuehorizon-forex/badges/gpa.svg
    :target: https://codeclimate.com/github/Valuehorizon/valuehorizon-forex
 
-A Django-based Foreign Exchange data toolkit. Part of the Valuehorizon application ecosystem.
+A Django-based Foreign Exchange data toolkit. It provides time-series functionality
+with built-in statistical plugins such as volatility and returns. You can also write 
+your own statistical plugins.
+It also includes documentation, test coverage and a good amount of sample data to play around with.
+This app is a part of the Valuehorizon application ecosystem.
 
 Contributors
 ============
@@ -18,7 +22,7 @@ Contributors
 
 Dependencies
 =============
-``forex`` supports `Django`_ (>=1.7) or later and requires and `Pandas`_ (>= 0.12.0). 
+``forex`` supports `Django`_ (>=1.8.1) or later and requires and `Pandas`_ (>= 0.12.0). 
 **Note** because of problems with the ``requires`` directive of setuptools
 you probably need to install ``numpy`` in your virtualenv  before you install
 this package or if you want to run the test suite ::
@@ -49,17 +53,20 @@ Start by creating a new ``virtualenv`` for your project ::
 
     mkvirtualenv myproject
 
-Next install ``numpy`` and ``pandas`` and optionally ``scipy`` ::
+Next install ``numpy`` and ``pandas`` ::
 
     pip install numpy
     pip install pandas
-
-You may want to consult  the `scipy documentation`_ for more information 
-on installing the ``Scipy`` stack.
-
-.. _scipy documentation: http://www.scipy.org/install.html
 
 Finally, install the development version of ``forex`` from ``github`` using ``pip``::
     
     pip install https://github.com/Valuehorizon/forex/tarball/master
 
+
+Commercial Support
+==================
+
+This project is sponsored by Valuehorizon_. If you require assistance on
+your project(s), please contact us: support@valuehorizon.com.
+
+.. _Valuehorizon: http://www.valuehorizon.com

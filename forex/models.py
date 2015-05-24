@@ -45,6 +45,7 @@ class Currency(models.Model):
         
         required_dates = date_range(start_date,end_date)
         df = df.reindex(required_dates)
+        df = df.fillna(method='ffill')
         
         return df
 
@@ -108,6 +109,7 @@ class CurrencyPrices(models.Model):
         return u'%s, %s' % (unicode(self.currency),
                             unicode(self.date),)
     
+    @property
     def mid_price(self):
         """
         Compute the mid point between bid and ask
@@ -131,7 +133,7 @@ class CurrencyPrices(models.Model):
         Calculate the bid_price in USD. This is the inverse
         of the bid price.
         """        
-        if self.ask_price != 0:
+        if self.bid_price != 0:
             return 1 / Decimal(str(self.bid_price))
         else:
             raise ZeroDivisionError('Bid price is zero')

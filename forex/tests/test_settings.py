@@ -47,7 +47,7 @@ EXTERNAL_APPS = [
 
 INTERNAL_APPS = [
     'forex',
-    'forex.tests.test_app',
+    #'forex.tests.test_app',
 ]
 
 INSTALLED_APPS = EXTERNAL_APPS + INTERNAL_APPS
