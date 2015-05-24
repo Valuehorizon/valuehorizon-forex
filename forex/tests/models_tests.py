@@ -5,7 +5,7 @@ from datetime import date
 from decimal import Decimal
 
 # Import models
-from ..models import Currency, CurrencyPrices
+from ..models import Currency, CurrencyPrices, convert_currency
 
 class CurrencyModelTests(TestCase):
     def setUp(self):
@@ -14,18 +14,18 @@ class CurrencyModelTests(TestCase):
 
         CurrencyPrices.objects.create(currency=test_curr1,
             date=date(2015,1,1),
-            ask_price = 3,
-            bid_price = 4)
+            ask_price = 4,
+            bid_price = 3)
 
         CurrencyPrices.objects.create(currency=test_curr1,
             date=date(2015,1,3),
-            ask_price = 5,
-            bid_price = 6)
+            ask_price = 6,
+            bid_price = 5)
 
         CurrencyPrices.objects.create(currency=test_curr1,
             date=date(2015,1,5),
-            ask_price = 7,
-            bid_price = 8)
+            ask_price = 8,
+            bid_price = 7)
 
     def field_tests(self):
         required_fields = [u'id', 'name', 'symbol', 'ascii_symbol', 'num_code', 'digits', 'description']
@@ -49,7 +49,7 @@ class CurrencyModelTests(TestCase):
     def test_dataframe_generation_fill(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
         df = test_curr1.generate_dataframe()
-        self.assertEqual(df.ix[1]['ASK'], 3)
+        self.assertEqual(df.ix[1]['ASK'], 4)
 
 
 class CurrencyPriceModelTests(TestCase):
@@ -58,8 +58,8 @@ class CurrencyPriceModelTests(TestCase):
         test_curr1 = Currency.objects.get(symbol="TEST")
         CurrencyPrices.objects.create(currency=test_curr1,
             date=date(2015,1,1),
-            ask_price = 3,
-            bid_price = 4)
+            ask_price = 4,
+            bid_price = 3)
 
     def field_tests(self):
         required_fields = ['id', 'currency', 'date', 'ask_price', 'bid_price']
@@ -70,6 +70,7 @@ class CurrencyPriceModelTests(TestCase):
         test_curr1 = Currency.objects.get(symbol="TEST")
         price = CurrencyPrices.objects.get(currency=test_curr1, date=date(2015,1,1))
         price.ask_price = 0
+        price.bid_price = 0
         price.save()
         self.assertEqual(price.ask_price, Decimal('0'))
 
@@ -93,15 +94,43 @@ class CurrencyPriceModelTests(TestCase):
             raise AssertionError("Bid Price cannot be less than zero")
         except ValidationError:
             pass
+
+    def test_bid_ask_validity(self):
+        test_curr1 = Currency.objects.get(symbol="TEST")
+        price = CurrencyPrices.objects.get(currency=test_curr1, date=date(2015,1,1))
+
+        price.bid_price = 50
+        price.ask_price = 40
+        try:
+            price.save()
+            raise AssertionError("Ask price must be greater than or equal to Bid price")
+        except ValidationError:
+            pass
+
+        price.bid_price = 40
+        price.ask_price = 50
+        self.assertEqual(price.save(), None)
+
+        price.bid_price = 50
+        price.ask_price = 50
+        self.assertEqual(price.save(), None)
         
 
     def test_mid_price(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
         price = CurrencyPrices.objects.get(currency=test_curr1, date=date(2015,1,1))
-        price.ask_price = 3
+        price.ask_price = 5
         price.bid_price = 4
         price.save()
-        self.assertEqual(price.mid_price, Decimal('3.5'))
+        self.assertEqual(price.mid_price, Decimal('4.5'))
+
+    def test_spread(self):
+        test_curr1 = Currency.objects.get(symbol="TEST")
+        price = CurrencyPrices.objects.get(currency=test_curr1, date=date(2015,1,1))
+        price.ask_price = 4
+        price.bid_price = 3
+        price.save()
+        self.assertEqual(price.spread, 4 - 3)
 
     def test_ask_us(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
@@ -132,3 +161,45 @@ class CurrencyPriceModelTests(TestCase):
             raise AssertionError("Price should not be zero")
         except ZeroDivisionError:
             pass
+
+
+class ConvertCurrencyTests(TestCase):
+    def setUp(self):
+        Currency.objects.create(name="Test Dollar", symbol="TEST")
+        test_curr1 = Currency.objects.get(symbol="TEST")
+        CurrencyPrices.objects.create(currency=test_curr1,
+            date=date(2015,1,1),
+            ask_price = 4,
+            bid_price = 3)
+
+        Currency.objects.create(name="Test Dollar2", symbol="TEST2")
+        test_curr2 = Currency.objects.get(symbol="TEST2")
+        CurrencyPrices.objects.create(currency=test_curr2,
+            date=date(2015,1,1),
+            ask_price = 8,
+            bid_price = 6)
+
+        Currency.objects.create(name="Test Dollar3", symbol="TEST3")
+        test_curr2 = Currency.objects.get(symbol="TEST3")
+        CurrencyPrices.objects.create(currency=test_curr2,
+            date=date(2016,1,1),
+            ask_price = 10,
+            bid_price = 9)
+
+    def test_convert_equal_currency(self):
+        self.assertEqual(convert_currency("TEST", "TEST", 45, date(2015,1,1)), 45)
+        self.assertEqual(convert_currency("TEST", "TEST", -45, date(2015,1,1)), -45)
+        self.assertEqual(convert_currency("TEST", "TEST", 45, date(2015,1,30)), 45)
+        self.assertEqual(convert_currency("TEST", "TEST", -45, date(2015,1,30)), -45)
+
+    def test_convert_currency_no_data(self):
+        self.assertEqual(convert_currency("TEST", "TEST2", -45, date(2015,1,15)), None)
+        self.assertEqual(convert_currency("TEST", "TEST3", -45, date(2015,1,1)), None)
+
+    def test_convert_currency_float(self):
+        self.assertEqual(convert_currency("TEST", "TEST2", float(4.5), date(2015,1,1)), float(9))
+        self.assertEqual(convert_currency("TEST", "TEST2", 4.5, date(2015,1,1)), 9.0)
+        self.assertEqual(convert_currency("TEST", "TEST2", Decimal('4.5'), date(2015,1,1)), Decimal('9.0000'))
+        self.assertEqual(convert_currency("TEST", "TEST2", '-45', date(2015,1,1)), None)
+
+

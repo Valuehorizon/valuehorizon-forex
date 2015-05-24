@@ -8,6 +8,8 @@ from datetime import date, timedelta
 from decimal import Decimal
 from pandas import DataFrame, date_range
 
+PRICE_PRECISION = 4
+
 
 class Currency(models.Model):
     """
@@ -93,9 +95,9 @@ class CurrencyPrices(models.Model):
     date = models.DateField()
     
     # Price Data per $1 of US
-    ask_price = models.DecimalField(max_digits=20, decimal_places=4,
+    ask_price = models.DecimalField(max_digits=20, decimal_places=PRICE_PRECISION,
                                     validators=[MinValueValidator(Decimal('0.00'))])
-    bid_price = models.DecimalField(max_digits=20, decimal_places=4,
+    bid_price = models.DecimalField(max_digits=20, decimal_places=PRICE_PRECISION,
                                     validators=[MinValueValidator(Decimal('0.00'))],
                                     blank=True, null=True)
     
@@ -121,7 +123,9 @@ class CurrencyPrices(models.Model):
             raise ValidationError("Ask price must be greater than zero")
         if self.bid_price < 0:
             raise ValidationError("Bid price must be greater than zero")
-        
+        if self.ask_price < self.bid_price:
+            raise ValidationError("Ask price must be at least Bid price")
+
         super(CurrencyPrices, self).save(*args, **kwargs) # Call the "real" save() method.
     
     @property
@@ -130,6 +134,13 @@ class CurrencyPrices(models.Model):
         Compute the mid point between bid and ask
         """
         return (self.ask_price + self.bid_price) / Decimal('2.0')
+
+    @property
+    def spread(self):
+        """
+        Compute the differene between bid and ask
+        """
+        return (self.ask_price - self.bid_price)
     
     @property
     def ask_price_us(self):
@@ -165,14 +176,14 @@ def convert_currency(from_symbol, to_symbol, value, date):
     
     from_currency = Currency.objects.get(symbol=from_symbol)
     try:
-        from_currency_price = CurrencyPrices.objects.get(currency=from_currency, date=date).mid_price()
+        from_currency_price = CurrencyPrices.objects.get(currency=from_currency, date=date).mid_price
     except CurrencyPrices.DoesNotExist:
         print "Cannot fetch prices for %s on %s" % (str(from_currency), str(date))
         return None
     
     to_currency = Currency.objects.get(symbol=to_symbol)
     try:
-        to_currency_price = CurrencyPrices.objects.get(currency=to_currency, date=date).mid_price()
+        to_currency_price = CurrencyPrices.objects.get(currency=to_currency, date=date).mid_price
     except CurrencyPrices.DoesNotExist:
         print "Cannot fetch prices for %s on %s" % (str(to_currency), str(date))
         return None        
@@ -180,7 +191,7 @@ def convert_currency(from_symbol, to_symbol, value, date):
     if type(value) == float:
         output = (value / float(from_currency_price)) * float(to_currency_price)
     elif type(value) == Decimal:
-        output = (value / Decimal(str(from_currency_price))) * Decimal(str(to_currency_price))
+        output = Decimal(format((value / from_currency_price) * to_currency_price, '.%sf' % str(PRICE_PRECISION)))
     else:
         output = None
     

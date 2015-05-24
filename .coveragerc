@@ -1,9 +1,7 @@
 [run]
 source = forex
-branch = 1
+branch = 0
 omit =
-    forex/views.py
-    forex/urls.py
     forex/migrations/*
     forex/tests/*
 
