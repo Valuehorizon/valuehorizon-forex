@@ -7,18 +7,6 @@ from decimal import Decimal
 # Import models
 from ..models import Currency, CurrencyPrices
 
-
-class DummyModelTestCase(TestCase):
-    """Tests for the ``DummyModel`` model."""
-    def setUp(self):
-        return 0
-        # self.obj = factories.DummyModelFactory()
-    
-    def test_model(self):
-        # self.assertTrue(self.obj.pk)
-        self.assertTrue(True)
-
-
 class CurrencyModelTests(TestCase):
     def setUp(self):
         Currency.objects.create(name="Test Dollar", symbol="TEST")
@@ -86,11 +74,25 @@ class CurrencyPriceModelTests(TestCase):
         self.assertEqual(price.ask_price, Decimal('0'))
 
         price.ask_price = -1
-        # try:
-        #     price.save()
-        #     raise AssertionError("Ask Price cannot be less than zero")
-        # except ValidationError:
-        #     pass
+        try:
+            price.save()
+            raise AssertionError("Ask Price cannot be less than zero")
+        except ValidationError:
+            pass
+
+    def test_bid_price_min_validation(self):
+        test_curr1 = Currency.objects.get(symbol="TEST")
+        price = CurrencyPrices.objects.get(currency=test_curr1, date=date(2015,1,1))
+        price.bid_price = 0
+        price.save()
+        self.assertEqual(price.bid_price, Decimal('0'))
+
+        price.bid_price = -1
+        try:
+            price.save()
+            raise AssertionError("Bid Price cannot be less than zero")
+        except ValidationError:
+            pass
         
 
     def test_mid_price(self):

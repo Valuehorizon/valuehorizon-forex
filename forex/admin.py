@@ -9,6 +9,7 @@ admin.site.register(Currency, CurrencyAdmin)
 class CurrencyPricesAdmin(admin.ModelAdmin): 
     search_fields=["name", ]
     list_filter=['currency']
+    list_display = ('currency', 'date', 'ask_price', 'bid_price')
 admin.site.register(CurrencyPrices, CurrencyPricesAdmin)
 
 

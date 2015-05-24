@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models import Manager
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, ValidationError
 
 # Import misc packages
 import numpy as np
@@ -112,6 +112,17 @@ class CurrencyPrices(models.Model):
     def __unicode__(self):
         return u'%s, %s' % (unicode(self.currency),
                             unicode(self.date),)
+
+    def save(self, *args, **kwargs):
+        """
+        Sanitation checks
+        """
+        if self.ask_price < 0:
+            raise ValidationError("Ask price must be greater than zero")
+        if self.bid_price < 0:
+            raise ValidationError("Bid price must be greater than zero")
+        
+        super(CurrencyPrices, self).save(*args, **kwargs) # Call the "real" save() method.
     
     @property
     def mid_price(self):
