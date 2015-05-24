@@ -2,9 +2,8 @@ from django.db import models
 from django.db.models import Manager
 
 # Import misc packages
-import calendar as cal
 import numpy as np
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 from pandas import DataFrame, date_range
 
@@ -34,24 +33,13 @@ class Currency(models.Model):
         """
         first_series_point = CurrencyPrices.objects.filter(currency=self)[0]
         last_series_point = CurrencyPrices.objects.filter(currency=self).reverse()[0]
-        if start_date == None:
-            start_date = first_series_point.date
-        else:
-            start_date = max(first_series_point.date, start_date)
-        # Get a one day lag so the change wont be null
-        temp_start_date = start_date - timedelta(days=3)
-        
-        if end_date == None:
-            end_date = last_series_point.date
-        else:
-            end_date = min(last_series_point.date, end_date)
+        start_date = first_series_point.date if start_date == None else max(first_series_point.date, start_date)
+        temp_start_date = start_date - timedelta(days=3) # Add lag
+        end_date = last_series_point.date if end_date == None else min(last_series_point.date, end_date)
             
-        currency_date = CurrencyPrices.objects.filter(currency=self,
-                                                      date__gte=temp_start_date,
-                                                      date__lte=end_date).values_list('date', 'ask_price', 'bid_price')
+        currency_date = CurrencyPrices.objects.filter(currency=self, date__gte=temp_start_date, date__lte=end_date).values_list('date', 'ask_price', 'bid_price')
         currency_data_array = np.core.records.fromrecords(currency_date, names=['DATE', "ASK", "BID"])
-        df = DataFrame.from_records(currency_data_array, index='DATE')  
-        df = df.astype(float)
+        df = DataFrame.from_records(currency_data_array, index='DATE').astype(float)
         df['MID'] = (df['ASK'] + df['BID']) / 2.0
         df['CHANGE'] = df['MID'].pct_change()
         
@@ -60,12 +48,6 @@ class Currency(models.Model):
         
         return df
 
-    def save(self, *args, **kwargs):
-        """
-        Generates name and cached data
-        """
-        
-        super(Currency, self).save(*args, **kwargs) # Call the "real" save() method.
 
 
 class CurrencyPricesManager(Manager):
@@ -81,8 +63,7 @@ class CurrencyPricesManager(Manager):
         if symbols == None:
             symbols = Currency.objects.all().values_list('symbol')
         try:
-            assert(date_index != None)
-            assert(len(date_index > 0))
+            assert date_index != None and len(date_index) > 0
         except:
             start_date = date(2005,1,1)
             end_date = date.today()    
@@ -90,14 +71,11 @@ class CurrencyPricesManager(Manager):
         
         currency_price_data = CurrencyPrices.objects.filter(currency__symbol__in=symbols, date__in=date_index.tolist()).values_list('date', 'currency__symbol', 'ask_price')
         try:
-            # Generate numpy array from queryset data
             forex_data_array = np.core.records.fromrecords(currency_price_data, names=['date', 'symbol', 'ask_price'])
         except IndexError:
-            # If there is no data, generate an empty array
             forex_data_array = np.core.records.fromrecords([(date(1900,1,1) ,"",0)], names=['date', 'symbol', 'ask_price'])
         df = DataFrame.from_records(forex_data_array, index='date')
         
-        # Create pivot table
         df['date'] = df.index
         df = df.pivot(index='date', columns='symbol', values='ask_price')
         
@@ -115,10 +93,6 @@ class CurrencyPrices(models.Model):
     # Price Data per $1 of US
     ask_price = models.DecimalField(max_digits=20, decimal_places=4,)
     bid_price = models.DecimalField(max_digits=20, decimal_places=4, blank=True, null=True)
-    
-    # Price Data US per 1 Unit of Currency
-    ask_price_us = models.DecimalField(max_digits=20, decimal_places=4, editable=False)
-    bid_price_us = models.DecimalField(max_digits=20, decimal_places=4, editable=False)
     
     # Add custom managers
     objects=CurrencyPricesManager()
@@ -138,33 +112,31 @@ class CurrencyPrices(models.Model):
         """
         Compute the mid point between bid and ask
         """
-        if self.ask_price != None and self.bid_price != None:
-            return (self.ask_price + self.bid_price) / Decimal('2.0')
-        else:
-            return None
+        return (self.ask_price + self.bid_price) / Decimal('2.0')
     
-    def save(self, *args, **kwargs):
+    @property
+    def ask_price_us(self):
         """
-        Generates name
+        Calculate the ask_price in USD. This is the inverse
+        of the ask price.
         """
-        
-        if self.ask_price != None:
-            if self.ask_price != 0:
-                self.ask_price_us = 1 / Decimal(str(self.ask_price))
-            else:
-                raise ZeroDivisionError('Ask price is zero')
+        if self.ask_price != 0:
+            return 1 / Decimal(str(self.ask_price))
         else:
-            raise ValueError('Ask price must be specified')
+            raise ZeroDivisionError('Ask price is zero')   
         
-        if self.bid_price != None:
-            if self.bid_price != 0:
-                self.bid_price_us = 1 / Decimal(str(self.bid_price))
-            else:
-                raise ZeroDivisionError('Bid price is zero')
+    @property
+    def bid_price_us(self):
+        """
+        Calculate the bid_price in USD. This is the inverse
+        of the bid price.
+        """        
+        if self.ask_price != 0:
+            return 1 / Decimal(str(self.bid_price))
         else:
-            raise ValueError('Bid price must be specified')
-        
-        super(CurrencyPrices, self).save(*args, **kwargs) # Call the "real" save() method.
+            raise ZeroDivisionError('Bid price is zero')
+    
+
 
 
 def convert_currency(from_symbol, to_symbol, value, date):
