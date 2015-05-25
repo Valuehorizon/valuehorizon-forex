@@ -9,6 +9,7 @@ from decimal import Decimal
 from pandas import DataFrame, date_range
 
 PRICE_PRECISION = 4
+DATEFRAME_START_DATE = date(2005,1,1)
 
 
 class Currency(models.Model):
@@ -65,23 +66,33 @@ class CurrencyPricesManager(Manager):
         
         # Set defaults if necessary
         if symbols == None:
-            symbols = Currency.objects.all().values_list('symbol')
+            symbols = list(Currency.objects.all().values_list('symbol', flat=True))
         try:
-            assert date_index != None and len(date_index) > 0
+            start_date = date_index[0]
+            end_date = date_index[-1]    
         except:
-            start_date = date(2005,1,1)
+            start_date = DATEFRAME_START_DATE
             end_date = date.today()    
-            date_index = date_range(start_date, end_date)
+        date_index = date_range(start_date, end_date)
         
-        currency_price_data = CurrencyPrices.objects.filter(currency__symbol__in=symbols, date__in=date_index.tolist()).values_list('date', 'currency__symbol', 'ask_price')
+        currency_price_data = CurrencyPrices.objects.filter(currency__symbol__in=symbols, 
+                                                            date__gte=date_index[0],
+                                                            date__lte=date_index[-1]).values_list('date', 'currency__symbol', 'ask_price', 'bid_price')
         try:
-            forex_data_array = np.core.records.fromrecords(currency_price_data, names=['date', 'symbol', 'ask_price'])
+            forex_data_array = np.core.records.fromrecords(currency_price_data, names=['date', 'symbol', 'ask_price', 'bid_price'])
         except IndexError:
-            forex_data_array = np.core.records.fromrecords([(date(1900,1,1) ,"",0)], names=['date', 'symbol', 'ask_price'])
+            forex_data_array = np.core.records.fromrecords([(date(1900,1,1) , "", 0, 0)], names=['date', 'symbol', 'ask_price', 'bid_price'])
         df = DataFrame.from_records(forex_data_array, index='date')
         
         df['date'] = df.index
-        df = df.pivot(index='date', columns='symbol', values='ask_price')
+        df['mid_price'] = (df['ask_price'] + df['bid_price']) / 2
+        df = df.pivot(index='date', columns='symbol', values='mid_price')
+        df = df.reindex(date_index)
+        df = df.fillna(method="ffill")
+        unlisted_symbols = list(set(symbols) - set(df.columns))
+        for unlisted_symbol in unlisted_symbols:
+            df[unlisted_symbol] = np.nan
+        df = df[symbols]
         
         return df
         
@@ -131,14 +142,14 @@ class CurrencyPrices(models.Model):
     @property
     def mid_price(self):
         """
-        Compute the mid point between bid and ask
+        Compute the mid point between the bid and ask prices
         """
         return (self.ask_price + self.bid_price) / Decimal('2.0')
 
     @property
     def spread(self):
         """
-        Compute the differene between bid and ask
+        Compute the difference between bid and ask prices
         """
         return (self.ask_price - self.bid_price)
     

@@ -3,9 +3,11 @@ from django.test import TestCase
 from django.core.validators import ValidationError
 from datetime import date
 from decimal import Decimal
+import pandas as pd
 
 # Import models
 from ..models import Currency, CurrencyPrices, convert_currency
+from ..models import DATEFRAME_START_DATE
 
 class CurrencyModelTests(TestCase):
     def setUp(self):
@@ -161,6 +163,62 @@ class CurrencyPriceModelTests(TestCase):
             raise AssertionError("Price should not be zero")
         except ZeroDivisionError:
             pass
+
+class CurrencyPriceDataFrame(TestCase):
+    def setUp(self):
+        Currency.objects.create(name="Test Dollar", symbol="TEST1")
+        Currency.objects.create(name="Test Dollar2", symbol="TEST2")
+        Currency.objects.create(name="Test Dollar3", symbol="TEST3")
+        test_curr1 = Currency.objects.get(symbol="TEST1")
+        test_curr2 = Currency.objects.get(symbol="TEST2")
+        test_curr3 = Currency.objects.get(symbol="TEST3")
+
+        CurrencyPrices.objects.create(currency=test_curr1,
+            date=date(2015,1,1),
+            ask_price = 4,
+            bid_price = 3)
+
+        CurrencyPrices.objects.create(currency=test_curr1,
+            date=date(2015,1,15),
+            ask_price = 8,
+            bid_price = 6)
+
+
+        CurrencyPrices.objects.create(currency=test_curr2,
+            date=date(2015,2,1),
+            ask_price = 10,
+            bid_price = 9)
+
+        CurrencyPrices.objects.create(currency=test_curr2,
+            date=date(2015,2,15),
+            ask_price = 11,
+            bid_price = 7)
+
+    def test_no_symbols_no_dates(self):
+        df = CurrencyPrices.objects.generate_dataframe(symbols=None, date_index=None)
+        self.assertEqual(set(df.columns), set(["TEST1", "TEST2", "TEST3"]))
+        self.assertEqual(set(df.index), set(pd.date_range(DATEFRAME_START_DATE, date.today())))
+
+    def test_with_symbols_and_dates(self):
+        df = CurrencyPrices.objects.generate_dataframe(symbols=["TEST1", "TEST2"], date_index=pd.date_range(date(2015,1,12),date(2015,1,26)))
+        self.assertEqual(set(df.columns), set(["TEST1", "TEST2"]))
+        self.assertEqual(set(df.index), set(pd.date_range(date(2015,1,12), date(2015,1,26))))
+    
+    def test_nodata(self):
+        df = CurrencyPrices.objects.generate_dataframe(symbols=["TEST3"], date_index=None)
+        self.assertEqual(set(df.index), set(pd.date_range(DATEFRAME_START_DATE, date.today())))
+        self.assertEqual(set(df.columns), set(["TEST3"]))
+        for datapoint in df["TEST3"]:
+            self.assertEqual(pd.np.isnan(datapoint), True)
+
+    def test_fill(self):
+        df = CurrencyPrices.objects.generate_dataframe(symbols=["TEST1", "TEST2"], date_index=None)
+        self.assertEqual(set(df.columns), set(["TEST1", "TEST2"]))
+        self.assertEqual(set(df.index), set(pd.date_range(DATEFRAME_START_DATE, date.today())))
+        self.assertEqual(df.loc[date(2015,1,10)]['TEST1'], Decimal('3.5'))
+
+
+
 
 
 class ConvertCurrencyTests(TestCase):
