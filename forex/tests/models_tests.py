@@ -1,13 +1,17 @@
 """Tests for the models of the forex app."""
+
+# Import Django libraries
 from django.test import TestCase
 from django.core.validators import ValidationError
+
+# Import Valuehorizon libraries
+from ..models import Currency, CurrencyPrices, convert_currency
+from ..models import DATEFRAME_START_DATE
+
+# Import other libraries
 from datetime import date
 from decimal import Decimal
 import pandas as pd
-
-# Import models
-from ..models import Currency, CurrencyPrices, convert_currency
-from ..models import DATEFRAME_START_DATE
 
 class CurrencyModelTests(TestCase):
     def setUp(self):

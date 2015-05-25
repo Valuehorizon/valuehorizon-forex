@@ -1,8 +1,11 @@
+"""Forex app models."""
+
+# Import Django libraries
 from django.db import models
 from django.db.models import Manager
 from django.core.validators import MinValueValidator, ValidationError
 
-# Import misc packages
+# Import other libraries
 import numpy as np
 from datetime import date, timedelta
 from decimal import Decimal
