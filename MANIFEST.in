@@ -1,10 +1,11 @@
+# Based on check_manifest.py
 include AUTHORS
-include LICENSE
 include DESCRIPTION
-include CHANGELOG.txt
-include README.md
-include tox.ini
+include LICENSE
+include *.py
+include *.txt
+include .coveragerc
+include Makefile
+recursive-include docs *.md
+
 graft forex
-global-exclude *.orig *.pyc *.log *.swp local_settings.py
-prune forex/tests/coverage
-prune forex/.ropeproject
