@@ -9,7 +9,6 @@ omit =
 exclude_lines =
     pragma: no cover
     def __repr__
-    def __unicode__
     raise AssertionError
     raise NotImplementedError
     if __name__ == .__main__.:

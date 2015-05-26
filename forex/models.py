@@ -1,11 +1,8 @@
-"""Forex app models."""
-
-# Import Django libraries
 from django.db import models
 from django.db.models import Manager
 from django.core.validators import MinValueValidator, ValidationError
 
-# Import other libraries
+# Import misc packages
 import numpy as np
 from datetime import date, timedelta
 from decimal import Decimal
@@ -27,6 +24,10 @@ class Currency(models.Model):
     digits = models.IntegerField(null=True, blank=True)  # Digits after decimal (minor unit)
     description = models.TextField(blank=True)
 
+    # Cached Data
+    date_modified = models.DateTimeField(null=True, blank=True, editable=False, auto_now=True)
+    date_created = models.DateTimeField(null=True, blank=True, editable=False, auto_now_add=True)
+    
     class Meta:
         verbose_name_plural = 'Currencies'
         verbose_name = 'Currency'
@@ -114,6 +115,10 @@ class CurrencyPrices(models.Model):
     bid_price = models.DecimalField(max_digits=20, decimal_places=PRICE_PRECISION,
                                     validators=[MinValueValidator(Decimal('0.00'))],
                                     blank=True, null=True)
+    
+    # Cached Data
+    date_modified = models.DateTimeField(null=True, blank=True, editable=False, auto_now=True)
+    date_created = models.DateTimeField(null=True, blank=True, editable=False, auto_now_add=True)
     
     # Add custom managers
     objects=CurrencyPricesManager()

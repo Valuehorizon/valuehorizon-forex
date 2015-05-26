@@ -34,7 +34,7 @@ class CurrencyModelTests(TestCase):
             bid_price = 7)
 
     def field_tests(self):
-        required_fields = [u'id', 'name', 'symbol', 'ascii_symbol', 'num_code', 'digits', 'description']
+        required_fields = [u'id', 'name', 'symbol', 'ascii_symbol', 'num_code', 'digits', 'description', 'date_created', 'date_modified']
         actual_fields = [field.name for field in Currency._meta.fields]
         self.assertEqual(set(required_fields), set(actual_fields))
 
@@ -68,7 +68,7 @@ class CurrencyPriceModelTests(TestCase):
             bid_price = 3)
 
     def field_tests(self):
-        required_fields = ['id', 'currency', 'date', 'ask_price', 'bid_price']
+        required_fields = ['id', 'currency', 'date', 'ask_price', 'bid_price', 'date_created', 'date_modified']
         actual_fields = [field.name for field in CurrencyPrices._meta.fields]
         self.assertEqual(set(required_fields), set(actual_fields))
 
