@@ -21,8 +21,8 @@ Contributing
 Please file bugs and send pull requests to the `GitHub repository`_ and `issue
 tracker`_.
 
-.. _GitHub repository: https://github.com/Valuehorizon/forex/
-.. _issue tracker: https://github.com/Valuehorizon/forex/issues
+.. _GitHub repository: https://github.com/Valuehorizon/valuehorizon-forex/
+.. _issue tracker: https://github.com/Valuehorizon/valuehorizon-forex/issues
 
 Commercial Support
 ==================

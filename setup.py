@@ -37,7 +37,7 @@ dev_requires = [
 ]
 
 install_requires = [
-    'django',
+    # User should install requirements
 ]
 
 
