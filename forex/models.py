@@ -34,7 +34,7 @@ class Currency(models.Model):
         ordering = ['name', 'symbol']
 
     def __unicode__(self):
-        return u'%s %s %s' % (unicode(self.name), unicode(',  '), unicode(self.symbol))
+        return u'%s, %s' % (unicode(self.name), unicode(self.symbol))
     
     def generate_dataframe(self, start_date=None, end_date=None):
         """

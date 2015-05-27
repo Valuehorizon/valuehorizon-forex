@@ -38,6 +38,11 @@ class CurrencyModelTests(TestCase):
         actual_fields = [field.name for field in Currency._meta.fields]
         self.assertEqual(set(required_fields), set(actual_fields))
 
+    def test_unicode(self):
+        test_curr1 = Currency.objects.get(symbol="TEST")
+        test_curr1.save()
+        self.assertEqual(test_curr1.__unicode__(), "Test Dollar, TEST")        
+
     def test_dataframe_generation_base(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
         df = test_curr1.generate_dataframe()
@@ -71,6 +76,13 @@ class CurrencyPriceModelTests(TestCase):
         required_fields = ['id', 'currency', 'date', 'ask_price', 'bid_price', 'date_created', 'date_modified']
         actual_fields = [field.name for field in CurrencyPrices._meta.fields]
         self.assertEqual(set(required_fields), set(actual_fields))
+
+    def test_unicode(self):
+        test_curr1 = Currency.objects.get(symbol="TEST")
+        test_curr1.save()
+        test_price1 = CurrencyPrices.objects.get(currency=test_curr1, date=date(2015,1,1))
+        test_price1.save()
+        self.assertEqual(test_price1.__unicode__(), "Test Dollar, TEST, 2015-01-01") 
 
     def test_ask_price_min_validation(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
