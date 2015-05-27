@@ -22,7 +22,7 @@ import shlex
 #sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../..'))
 sys.path.insert(0, os.path.abspath('../../forex'))
-os.environ['DJANGO_SETTINGS_MODULE'] = 'forex.settings'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'forex.settings.sphinx_documentation'
 from django.conf import settings
 
 # -- General configuration ------------------------------------------------

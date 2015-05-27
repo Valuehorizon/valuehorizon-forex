@@ -16,7 +16,7 @@ import coverage
 from fabric.api import abort, lcd, local
 from fabric.colors import green, red
 
-import test_settings
+import forex.settings.test_settings as test_settings
 
 
 if not settings.configured:
