@@ -4,6 +4,7 @@ branch = 0
 omit =
     forex/migrations/*
     forex/tests/*
+    forex/settings/*
 
 [report]
 exclude_lines =
