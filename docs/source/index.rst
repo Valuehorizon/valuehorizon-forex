@@ -11,8 +11,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-.. automodule:: forex.models
-   :members:
+   intro
+   tutorial   
+   api
 
 Indices and tables
 ==================
