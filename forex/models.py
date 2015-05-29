@@ -39,13 +39,13 @@ class Currency(models.Model):
     def generate_dataframe(self, start_date=None, end_date=None):
         """
         """
-        first_series_point = CurrencyPrices.objects.filter(currency=self)[0]
-        last_series_point = CurrencyPrices.objects.filter(currency=self).reverse()[0]
+        first_series_point = CurrencyPrice.objects.filter(currency=self)[0]
+        last_series_point = CurrencyPrice.objects.filter(currency=self).reverse()[0]
         start_date = first_series_point.date if start_date == None else max(first_series_point.date, start_date)
         temp_start_date = start_date - timedelta(days=3) # Add lag
         end_date = last_series_point.date if end_date == None else min(last_series_point.date, end_date)
             
-        currency_date = CurrencyPrices.objects.filter(currency=self, date__gte=temp_start_date, date__lte=end_date).values_list('date', 'ask_price', 'bid_price')
+        currency_date = CurrencyPrice.objects.filter(currency=self, date__gte=temp_start_date, date__lte=end_date).values_list('date', 'ask_price', 'bid_price')
         currency_data_array = np.core.records.fromrecords(currency_date, names=['DATE', "ASK", "BID"])
         df = DataFrame.from_records(currency_data_array, index='DATE').astype(float)
         df['MID'] = (df['ASK'] + df['BID']) / 2.0
@@ -59,7 +59,7 @@ class Currency(models.Model):
 
 
 
-class CurrencyPricesManager(Manager):
+class CurrencyPriceManager(Manager):
     """ Adds some added functionality """
 
     def generate_dataframe(self, symbols=None, date_index = None):
@@ -79,7 +79,7 @@ class CurrencyPricesManager(Manager):
             end_date = date.today()    
         date_index = date_range(start_date, end_date)
         
-        currency_price_data = CurrencyPrices.objects.filter(currency__symbol__in=symbols, 
+        currency_price_data = CurrencyPrice.objects.filter(currency__symbol__in=symbols, 
                                                             date__gte=date_index[0],
                                                             date__lte=date_index[-1]).values_list('date', 'currency__symbol', 'ask_price', 'bid_price')
         try:
@@ -101,7 +101,7 @@ class CurrencyPricesManager(Manager):
         return df
         
 
-class CurrencyPrices(models.Model):
+class CurrencyPrice(models.Model):
     """
     Represents a currency price to US
     """
@@ -121,7 +121,7 @@ class CurrencyPrices(models.Model):
     date_created = models.DateTimeField(null=True, blank=True, editable=False, auto_now_add=True)
     
     # Add custom managers
-    objects=CurrencyPricesManager()
+    objects=CurrencyPriceManager()
 
     class Meta:
         verbose_name_plural = 'Currency Prices'
@@ -145,7 +145,7 @@ class CurrencyPrices(models.Model):
         if self.ask_price < self.bid_price:
             raise ValidationError("Ask price must be at least Bid price")
 
-        super(CurrencyPrices, self).save(*args, **kwargs) # Call the "real" save() method.
+        super(CurrencyPrice, self).save(*args, **kwargs) # Call the "real" save() method.
     
     @property
     def mid_price(self):
@@ -195,15 +195,15 @@ def convert_currency(from_symbol, to_symbol, value, date):
     
     from_currency = Currency.objects.get(symbol=from_symbol)
     try:
-        from_currency_price = CurrencyPrices.objects.get(currency=from_currency, date=date).mid_price
-    except CurrencyPrices.DoesNotExist:
+        from_currency_price = CurrencyPrice.objects.get(currency=from_currency, date=date).mid_price
+    except CurrencyPrice.DoesNotExist:
         print "Cannot fetch prices for %s on %s" % (str(from_currency), str(date))
         return None
     
     to_currency = Currency.objects.get(symbol=to_symbol)
     try:
-        to_currency_price = CurrencyPrices.objects.get(currency=to_currency, date=date).mid_price
-    except CurrencyPrices.DoesNotExist:
+        to_currency_price = CurrencyPrice.objects.get(currency=to_currency, date=date).mid_price
+    except CurrencyPrice.DoesNotExist:
         print "Cannot fetch prices for %s on %s" % (str(to_currency), str(date))
         return None        
     

@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.core.validators import ValidationError
 
 # Import Valuehorizon libraries
-from ..models import Currency, CurrencyPrices, convert_currency
+from ..models import Currency, CurrencyPrice, convert_currency
 from ..models import DATEFRAME_START_DATE
 
 # Import other libraries
@@ -18,17 +18,17 @@ class CurrencyModelTests(TestCase):
         Currency.objects.create(name="Test Dollar", symbol="TEST")
         test_curr1 = Currency.objects.get(symbol="TEST")
 
-        CurrencyPrices.objects.create(currency=test_curr1,
+        CurrencyPrice.objects.create(currency=test_curr1,
             date=date(2015,1,1),
             ask_price = 4,
             bid_price = 3)
 
-        CurrencyPrices.objects.create(currency=test_curr1,
+        CurrencyPrice.objects.create(currency=test_curr1,
             date=date(2015,1,3),
             ask_price = 6,
             bid_price = 5)
 
-        CurrencyPrices.objects.create(currency=test_curr1,
+        CurrencyPrice.objects.create(currency=test_curr1,
             date=date(2015,1,5),
             ask_price = 8,
             bid_price = 7)
@@ -67,26 +67,26 @@ class CurrencyPriceModelTests(TestCase):
     def setUp(self):
         Currency.objects.create(name="Test Dollar", symbol="TEST")
         test_curr1 = Currency.objects.get(symbol="TEST")
-        CurrencyPrices.objects.create(currency=test_curr1,
+        CurrencyPrice.objects.create(currency=test_curr1,
             date=date(2015,1,1),
             ask_price = 4,
             bid_price = 3)
 
     def field_tests(self):
         required_fields = ['id', 'currency', 'date', 'ask_price', 'bid_price', 'date_created', 'date_modified']
-        actual_fields = [field.name for field in CurrencyPrices._meta.fields]
+        actual_fields = [field.name for field in CurrencyPrice._meta.fields]
         self.assertEqual(set(required_fields), set(actual_fields))
 
     def test_unicode(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
         test_curr1.save()
-        test_price1 = CurrencyPrices.objects.get(currency=test_curr1, date=date(2015,1,1))
+        test_price1 = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015,1,1))
         test_price1.save()
         self.assertEqual(test_price1.__unicode__(), "Test Dollar, TEST, 2015-01-01") 
 
     def test_ask_price_min_validation(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
-        price = CurrencyPrices.objects.get(currency=test_curr1, date=date(2015,1,1))
+        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015,1,1))
         price.ask_price = 0
         price.bid_price = 0
         price.save()
@@ -101,7 +101,7 @@ class CurrencyPriceModelTests(TestCase):
 
     def test_bid_price_min_validation(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
-        price = CurrencyPrices.objects.get(currency=test_curr1, date=date(2015,1,1))
+        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015,1,1))
         price.bid_price = 0
         price.save()
         self.assertEqual(price.bid_price, Decimal('0'))
@@ -115,7 +115,7 @@ class CurrencyPriceModelTests(TestCase):
 
     def test_bid_ask_validity(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
-        price = CurrencyPrices.objects.get(currency=test_curr1, date=date(2015,1,1))
+        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015,1,1))
 
         price.bid_price = 50
         price.ask_price = 40
@@ -136,7 +136,7 @@ class CurrencyPriceModelTests(TestCase):
 
     def test_mid_price(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
-        price = CurrencyPrices.objects.get(currency=test_curr1, date=date(2015,1,1))
+        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015,1,1))
         price.ask_price = 5
         price.bid_price = 4
         price.save()
@@ -144,7 +144,7 @@ class CurrencyPriceModelTests(TestCase):
 
     def test_spread(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
-        price = CurrencyPrices.objects.get(currency=test_curr1, date=date(2015,1,1))
+        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015,1,1))
         price.ask_price = 4
         price.bid_price = 3
         price.save()
@@ -152,7 +152,7 @@ class CurrencyPriceModelTests(TestCase):
 
     def test_ask_us(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
-        price = CurrencyPrices.objects.get(currency=test_curr1, date=date(2015,1,1))
+        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015,1,1))
 
         price.ask_price = Decimal('3')
         price.save()
@@ -167,7 +167,7 @@ class CurrencyPriceModelTests(TestCase):
 
     def test_bid_us(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
-        price = CurrencyPrices.objects.get(currency=test_curr1, date=date(2015,1,1))
+        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015,1,1))
 
         price.bid_price = Decimal('3')
         price.save()
@@ -189,46 +189,46 @@ class CurrencyPriceDataFrame(TestCase):
         test_curr2 = Currency.objects.get(symbol="TEST2")
         test_curr3 = Currency.objects.get(symbol="TEST3")
 
-        CurrencyPrices.objects.create(currency=test_curr1,
+        CurrencyPrice.objects.create(currency=test_curr1,
             date=date(2015,1,1),
             ask_price = 4,
             bid_price = 3)
 
-        CurrencyPrices.objects.create(currency=test_curr1,
+        CurrencyPrice.objects.create(currency=test_curr1,
             date=date(2015,1,15),
             ask_price = 8,
             bid_price = 6)
 
 
-        CurrencyPrices.objects.create(currency=test_curr2,
+        CurrencyPrice.objects.create(currency=test_curr2,
             date=date(2015,2,1),
             ask_price = 10,
             bid_price = 9)
 
-        CurrencyPrices.objects.create(currency=test_curr2,
+        CurrencyPrice.objects.create(currency=test_curr2,
             date=date(2015,2,15),
             ask_price = 11,
             bid_price = 7)
 
     def test_no_symbols_no_dates(self):
-        df = CurrencyPrices.objects.generate_dataframe(symbols=None, date_index=None)
+        df = CurrencyPrice.objects.generate_dataframe(symbols=None, date_index=None)
         self.assertEqual(set(df.columns), set(["TEST1", "TEST2", "TEST3"]))
         self.assertEqual(set(df.index), set(pd.date_range(DATEFRAME_START_DATE, date.today())))
 
     def test_with_symbols_and_dates(self):
-        df = CurrencyPrices.objects.generate_dataframe(symbols=["TEST1", "TEST2"], date_index=pd.date_range(date(2015,1,12),date(2015,1,26)))
+        df = CurrencyPrice.objects.generate_dataframe(symbols=["TEST1", "TEST2"], date_index=pd.date_range(date(2015,1,12),date(2015,1,26)))
         self.assertEqual(set(df.columns), set(["TEST1", "TEST2"]))
         self.assertEqual(set(df.index), set(pd.date_range(date(2015,1,12), date(2015,1,26))))
     
     def test_nodata(self):
-        df = CurrencyPrices.objects.generate_dataframe(symbols=["TEST3"], date_index=None)
+        df = CurrencyPrice.objects.generate_dataframe(symbols=["TEST3"], date_index=None)
         self.assertEqual(set(df.index), set(pd.date_range(DATEFRAME_START_DATE, date.today())))
         self.assertEqual(set(df.columns), set(["TEST3"]))
         for datapoint in df["TEST3"]:
             self.assertEqual(pd.np.isnan(datapoint), True)
 
     def test_fill(self):
-        df = CurrencyPrices.objects.generate_dataframe(symbols=["TEST1", "TEST2"], date_index=None)
+        df = CurrencyPrice.objects.generate_dataframe(symbols=["TEST1", "TEST2"], date_index=None)
         self.assertEqual(set(df.columns), set(["TEST1", "TEST2"]))
         self.assertEqual(set(df.index), set(pd.date_range(DATEFRAME_START_DATE, date.today())))
         self.assertEqual(df.loc[date(2015,1,10)]['TEST1'], Decimal('3.5'))
@@ -241,21 +241,21 @@ class ConvertCurrencyTests(TestCase):
     def setUp(self):
         Currency.objects.create(name="Test Dollar", symbol="TEST")
         test_curr1 = Currency.objects.get(symbol="TEST")
-        CurrencyPrices.objects.create(currency=test_curr1,
+        CurrencyPrice.objects.create(currency=test_curr1,
             date=date(2015,1,1),
             ask_price = 4,
             bid_price = 3)
 
         Currency.objects.create(name="Test Dollar2", symbol="TEST2")
         test_curr2 = Currency.objects.get(symbol="TEST2")
-        CurrencyPrices.objects.create(currency=test_curr2,
+        CurrencyPrice.objects.create(currency=test_curr2,
             date=date(2015,1,1),
             ask_price = 8,
             bid_price = 6)
 
         Currency.objects.create(name="Test Dollar3", symbol="TEST3")
         test_curr2 = Currency.objects.get(symbol="TEST3")
-        CurrencyPrices.objects.create(currency=test_curr2,
+        CurrencyPrice.objects.create(currency=test_curr2,
             date=date(2016,1,1),
             ask_price = 10,
             bid_price = 9)
