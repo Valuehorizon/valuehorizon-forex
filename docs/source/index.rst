@@ -8,8 +8,9 @@ Valuehorizon Forex 0.3.1 documentation!
 
 The foreign exchange market (forex, FX, or currency market) is a global decentralized market for the trading of currencies. In terms of volume of trading, it is by far the largest market in the world. This reusable Django app provides you with the tools to keep track of a set of currencies and their price data.
 
-Valuehorizon Forex includes two models - ``Currency`` and ``CurrencyPrice``. All ``Currency`` data are provided and maintained. Some sample ``CurrencyPrice``
-data are provided, but for a full production dataset, you will have to source this data yourself. 
+Valuehorizon Forex includes two models - ``Currency`` and ``CurrencyPrice``. 
+All ``Currency`` data are provided and maintained. Some sample ``CurrencyPrice`` data are provided, 
+but for a full production dataset, you will have to source the ``CurrencyPrice`` data yourself. 
 
 Contents:
 
@@ -20,6 +21,8 @@ Contents:
    data
    usage
    examples
+   documentation
+   faq
    api
 
 Indices and tables

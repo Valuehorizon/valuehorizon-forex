@@ -62,7 +62,7 @@ class Currency(models.Model):
 class CurrencyPriceManager(Manager):
     """ Adds some added functionality """
 
-    def generate_dataframe(self, symbols=None, date_index = None):
+    def generate_dataframe(self, symbols=None, date_index=None, price_type="mid"):
         """
         Generate a dataframe consisting of the currency prices (specified by symbols)
         from the start to end date
@@ -89,8 +89,17 @@ class CurrencyPriceManager(Manager):
         df = DataFrame.from_records(forex_data_array, index='date')
         
         df['date'] = df.index
-        df['mid_price'] = (df['ask_price'] + df['bid_price']) / 2
-        df = df.pivot(index='date', columns='symbol', values='mid_price')
+
+        if price_type == "mid":
+            df['price'] = (df['ask_price'] + df['bid_price']) / 2
+        elif price_type == "ask_price":
+            df['price'] = df['ask_price']
+        elif price_type == "bid_price":
+            df['price'] = df['bid_price']
+        else:
+            raise ValueError("price_type must be on of 'ask', 'bid' or 'mid'")
+        
+        df = df.pivot(index='date', columns='symbol', values='price')
         df = df.reindex(date_index)
         df = df.fillna(method="ffill")
         unlisted_symbols = list(set(symbols) - set(df.columns))

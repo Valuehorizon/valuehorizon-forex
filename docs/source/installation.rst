@@ -29,8 +29,9 @@ First, install the ``python-dev`` library through the package manager::
 
    $ sudo apt-get install python-dev
 
-Next, install ``numpy`` and ``pandas``::
+Next, install ``lxml``, ``numpy`` and ``pandas``::
    
+   $ pip install lxml
    $ pip install numpy
    $ pip install pandas
 
