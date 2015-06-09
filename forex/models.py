@@ -122,8 +122,7 @@ class CurrencyPrice(models.Model):
     ask_price = models.DecimalField(max_digits=20, decimal_places=PRICE_PRECISION,
                                     validators=[MinValueValidator(Decimal('0.00'))])
     bid_price = models.DecimalField(max_digits=20, decimal_places=PRICE_PRECISION,
-                                    validators=[MinValueValidator(Decimal('0.00'))],
-                                    blank=True, null=True)
+                                    validators=[MinValueValidator(Decimal('0.00'))])
     
     # Cached Data
     date_modified = models.DateTimeField(null=True, blank=True, editable=False, auto_now=True)
