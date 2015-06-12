@@ -2,6 +2,8 @@
 Forex, by Valuehorizon
 ==============
 
+.. image:: https://badge.fury.io/py/valuehorizon-forex.svg
+   :target: http://badge.fury.io/py/valuehorizon-forex
 .. image:: https://travis-ci.org/Valuehorizon/valuehorizon-forex.svg?branch=master
    :target: https://travis-ci.org/Valuehorizon/valuehorizon-forex
 .. image:: https://coveralls.io/repos/Valuehorizon/valuehorizon-forex/badge.svg
