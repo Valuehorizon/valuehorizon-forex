@@ -35,6 +35,21 @@ class Currency(models.Model):
 
     def __unicode__(self):
         return u'%s, %s' % (unicode(self.name), unicode(self.symbol))
+
+    def get_verbose_name(self):
+        """
+        Fetch verbose name from _meta. This is useful if we want to do haystack
+        faceting on the model's objects.
+        """
+        return self._meta.verbose_name
+    
+    def get_verbose_name_plural(self):
+        """
+        Fetch plural verbose name from _meta. This is useful if we want to do haystack
+        faceting on the model's objects.
+        """
+        return self._meta.verbose_name_plural
+
     
     def generate_dataframe(self, start_date=None, end_date=None):
         """
