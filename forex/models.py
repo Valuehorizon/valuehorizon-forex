@@ -211,6 +211,7 @@ class CurrencyPrice(models.Model):
 
 def convert_currency(from_symbol, to_symbol, value, date):
     """
+    Converts an amount of money from one currency to another on a specified date.
     """
     if from_symbol == to_symbol:
         return value
