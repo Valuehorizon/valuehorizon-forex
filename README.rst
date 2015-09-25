@@ -1,6 +1,6 @@
-==============
+=======================
 Forex, by Valuehorizon
-==============
+=======================
 
 .. image:: https://badge.fury.io/py/valuehorizon-forex.svg
    :target: http://badge.fury.io/py/valuehorizon-forex
