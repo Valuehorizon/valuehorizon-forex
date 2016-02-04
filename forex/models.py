@@ -208,8 +208,13 @@ class CurrencyPrice(models.Model):
     
 
 def conversion_factor(from_symbol, to_symbol, date):
-
+    """
+    Generates a multiplying factor used to convert tow currencies
+    """
     
+    if from_symbol == to_symbol:
+        return Decimal('1.0')
+
     from_currency = Currency.objects.get(symbol=from_symbol)
     try:
         from_currency_price = CurrencyPrice.objects.get(currency=from_currency, date=date).mid_price
@@ -234,14 +239,14 @@ def convert_currency(from_symbol, to_symbol, value, date):
     if from_symbol == to_symbol:
         return value
 
-    conversion_factor = conversion_factor(from_symbol, to_symbol, date)
+    factor = conversion_factor(from_symbol, to_symbol, date)
     
     if type(value) == float:
-        output = value * float(conversion_factor)
+        output = value * float(factor)
     elif type(value) == Decimal:
-        output = Decimal(format(value * conversion_factor, '.%sf' % str(PRICE_PRECISION)))
+        output = Decimal(format(value * factor, '.%sf' % str(PRICE_PRECISION)))
     elif type(value) in [np.float16, np.float32, np.float64, np.float128, np.float]:
-        output = float(value) * float(conversion_factor)
+        output = float(value) * float(factor)
     else:
         output = None
     

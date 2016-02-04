@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.core.validators import ValidationError
 
 # Import Valuehorizon libraries
-from ..models import Currency, CurrencyPrice, convert_currency
+from ..models import Currency, CurrencyPrice, convert_currency, conversion_factor
 from ..models import DATEFRAME_START_DATE
 
 # Import other libraries
