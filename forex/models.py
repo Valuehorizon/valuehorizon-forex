@@ -207,15 +207,8 @@ class CurrencyPrice(models.Model):
             raise ZeroDivisionError('Bid price is zero')
     
 
+def conversion_factor(from_symbol, to_symbol, date):
 
-
-def convert_currency(from_symbol, to_symbol, value, date):
-    """
-    Converts an amount of money from one currency to another on a specified date.
-    """
-    if from_symbol == to_symbol:
-        return value
-    
     
     from_currency = Currency.objects.get(symbol=from_symbol)
     try:
@@ -231,12 +224,24 @@ def convert_currency(from_symbol, to_symbol, value, date):
         print "Cannot fetch prices for %s on %s" % (str(to_currency), str(date))
         return None        
     
+    return to_currency_price / from_currency_price
+
+
+def convert_currency(from_symbol, to_symbol, value, date):
+    """
+    Converts an amount of money from one currency to another on a specified date.
+    """
+    if from_symbol == to_symbol:
+        return value
+
+    conversion_factor = conversion_factor(from_symbol, to_symbol, date)
+    
     if type(value) == float:
-        output = (value / float(from_currency_price)) * float(to_currency_price)
+        output = value * float(conversion_factor)
     elif type(value) == Decimal:
-        output = Decimal(format((value / from_currency_price) * to_currency_price, '.%sf' % str(PRICE_PRECISION)))
+        output = Decimal(format(value * conversion_factor, '.%sf' % str(PRICE_PRECISION))
     elif type(value) in [np.float16, np.float32, np.float64, np.float128, np.float]:
-        output = (float(value) / float(from_currency_price)) * float(to_currency_price)
+        output = float(value) * float(conversion_factor)
     else:
         output = None
     
