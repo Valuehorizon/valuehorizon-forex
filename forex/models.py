@@ -239,7 +239,7 @@ def convert_currency(from_symbol, to_symbol, value, date):
     if type(value) == float:
         output = value * float(conversion_factor)
     elif type(value) == Decimal:
-        output = Decimal(format(value * conversion_factor, '.%sf' % str(PRICE_PRECISION))
+        output = Decimal(format(value * conversion_factor, '.%sf' % str(PRICE_PRECISION)))
     elif type(value) in [np.float16, np.float32, np.float64, np.float128, np.float]:
         output = float(value) * float(conversion_factor)
     else:
