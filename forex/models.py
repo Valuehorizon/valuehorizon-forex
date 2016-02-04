@@ -235,7 +235,7 @@ def convert_currency(from_symbol, to_symbol, value, date):
         output = (value / float(from_currency_price)) * float(to_currency_price)
     elif type(value) == Decimal:
         output = Decimal(format((value / from_currency_price) * to_currency_price, '.%sf' % str(PRICE_PRECISION)))
-    elif type(value) in [numpy.float16, numpy.float32, numpy.float64, numpy.float128, numpy.float]:
+    elif type(value) in [np.float16, np.float32, np.float64, np.float128, np.float]:
         output = (float(value) / float(from_currency_price)) * float(to_currency_price)
     else:
         output = None
