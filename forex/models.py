@@ -72,7 +72,7 @@ class Currency(models.Model):
         
         return df
 
-    def compute_return(self, rate="MID", start_date, end_date):
+    def compute_return(self, start_date, end_date, rate="MID"):
         """
         Compute the return of the currency between two dates
         """
