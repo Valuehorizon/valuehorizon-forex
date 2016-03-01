@@ -72,6 +72,26 @@ class Currency(models.Model):
         
         return df
 
+    def compute_return(self, rate="MID", start_date, end_date):
+        """
+        Compute the return of the currency between two dates
+        """
+        if rate not in ["MID", "ASK", "BID"]:
+            raise ValueError("Unknown rate type - must be 'MID', 'ASK' or 'BID'")
+
+        df = self.generate_dataframe(start_date=start_date, end_date=end_date)
+        start_price = df.ix[start_date][rate]
+        end_price = df.ix[end_date][rate]
+
+        try:
+            currency_return = (end_price / start_price) - 1.0
+        else:
+            currency_return = None
+
+        return currency_return
+
+
+
 
 
 class CurrencyPriceManager(Manager):
