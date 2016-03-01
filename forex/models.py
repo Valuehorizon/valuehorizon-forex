@@ -85,7 +85,7 @@ class Currency(models.Model):
 
         try:
             currency_return = (end_price / start_price) - 1.0
-        else:
+        except:
             currency_return = None
 
         return currency_return
