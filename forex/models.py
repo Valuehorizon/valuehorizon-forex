@@ -61,7 +61,7 @@ class Currency(models.Model):
         Compute the return of the currency between two dates
         """
         if rate not in ["MID", "ASK", "BID"]:
-            raise ValueError("Unknown rate type - must be 'MID', 'ASK' or 'BID'")
+            raise ValueError("Unknown rate type (%s)- must be 'MID', 'ASK' or 'BID'" % str(rate))
 
         if end_date <= start_date:
             raise ValueError("End date must be on or after start date")

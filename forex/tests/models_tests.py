@@ -195,6 +195,14 @@ class CurrencyPriceDataFrame(TestCase):
         CurrencyPrice.objects.create(currency=test_curr2, date=date(2015, 2, 1), ask_price=10, bid_price=9)
         CurrencyPrice.objects.create(currency=test_curr2, date=date(2015, 2, 15), ask_price=11, bid_price=7)
 
+    def test_correct_rate_input(self):
+        self.assertRaisesMessage(ValueError,
+                                 "Incorrect price_type (*BAD*) must be on of 'ask', 'bid' or 'mid'",
+                                 CurrencyPrice.objects.generate_dataframe,
+                                 symbols=None,
+                                 date_index=None,
+                                 price_type="*BAD*")
+
     def test_no_symbols_no_dates(self):
         df = CurrencyPrice.objects.generate_dataframe(symbols=None, date_index=None)
         self.assertEqual(set(df.columns), set(["TEST1", "TEST2", "TEST3"]))
@@ -242,19 +250,21 @@ class ComputeReturnTests(TestCase):
 
     def test_bad_input_rate(self):
         test_curr1 = Currency.objects.get(symbol="TEST1")
-        try:
-            test_curr1.compute_return(start_date=date(2015, 1, 2), end_date=date(2015, 1, 5), rate="*BAD*")
-            raise AssertionError("Bad input should fail")
-        except ValueError:
-            pass
+        self.assertRaisesMessage(ValueError,
+                                 "Unknown rate type (*BAD*)- must be 'MID', 'ASK' or 'BID'",
+                                 test_curr1.compute_return,
+                                 date(2015, 1, 2),
+                                 date(2015, 1, 5),
+                                 rate="*BAD*")
 
-    def bad_input_dates(self):
+    def test_bad_input_dates(self):
         test_curr1 = Currency.objects.get(symbol="TEST1")
-        try:
-            test_curr1.compute_return(start_date=date(2015, 1, 10), end_date=date(2015, 1, 5), rate="*BAD*")
-            raise AssertionError("Bad input should fail")
-        except ValueError:
-            pass
+        self.assertRaisesMessage(ValueError,
+                                 "End date must be on or after start date",
+                                 test_curr1.compute_return,
+                                 date(2015, 1, 10),
+                                 date(2015, 1, 5),
+                                 rate="MID")
 
     def test_computation(self):
         test_curr1 = Currency.objects.get(symbol="TEST1")
