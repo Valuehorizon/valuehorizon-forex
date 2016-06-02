@@ -30,9 +30,14 @@ from django_nose import NoseTestSuiteRunner
 class NoseCoverageTestRunner(NoseTestSuiteRunner):
     """Custom test runner that uses nose and coverage"""
     def run_tests(self, *args, **kwargs):
+        cov = coverage.Coverage()
+        cov.start()
         results = super(NoseCoverageTestRunner, self).run_tests(
             *args, **kwargs)
-        coverage.CoverageData().write_file('.coverage')
+        cov.stop()
+        cov.save()
+        cov.html_report()
+        #coverage.CoverageData().write_file('.coverage')
         return results
 
 
