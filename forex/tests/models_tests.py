@@ -219,6 +219,38 @@ class CurrencyPriceDataFrame(TestCase):
         self.assertEqual(df.loc[date(2015, 1, 10)]['TEST1'], Decimal('3.5'))
 
 
+class ComputeReturnTests(TestCase):
+    def setUp(self):
+        Currency.objects.create(name="Test Dollar", symbol="TEST1")
+        test_curr1 = Currency.objects.get(symbol="TEST1")
+
+        CurrencyPrice.objects.create(currency=test_curr1, date=date(2015, 1, 1), ask_price=4, bid_price=2)
+        CurrencyPrice.objects.create(currency=test_curr1, date=date(2015, 1, 15), ask_price=8, bid_price=6)
+
+    def test_bad_input_rate(self):
+        test_curr1 = Currency.objects.get(symbol="TEST1")
+        try:
+            test_curr1.compute_return(start_date=date(2015, 1, 2), end_date=date(2015, 1, 5), rate="*BAD*")
+            raise AssertionError("Bad input should fail")
+        except ValueError:
+            pass
+
+    def bad_input_dates(self):
+        test_curr1 = Currency.objects.get(symbol="TEST1")
+        try:
+            test_curr1.compute_return(start_date=date(2015, 1, 10), end_date=date(2015, 1, 5), rate="*BAD*")
+            raise AssertionError("Bad input should fail")
+        except ValueError:
+            pass
+
+    def test_computation(self):
+        test_curr1 = Currency.objects.get(symbol="TEST1")
+        self.assertEqual(test_curr1.compute_return(start_date=date(2015, 1, 1), end_date=date(2015, 1, 15), rate="MID"), (7. / 3) - 1)
+        self.assertEqual(test_curr1.compute_return(start_date=date(2015, 1, 1), end_date=date(2015, 1, 15)), (7. / 3) - 1)
+        self.assertEqual(test_curr1.compute_return(start_date=date(2015, 1, 1), end_date=date(2015, 1, 15), rate="ASK"), 1)
+        self.assertEqual(test_curr1.compute_return(start_date=date(2015, 1, 1), end_date=date(2015, 1, 15), rate="BID"), 2)
+
+
 class ConvertCurrencyTests(TestCase):
     def setUp(self):
         Currency.objects.create(name="Test Dollar", symbol="TEST")

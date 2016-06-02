@@ -63,6 +63,9 @@ class Currency(models.Model):
         if rate not in ["MID", "ASK", "BID"]:
             raise ValueError("Unknown rate type - must be 'MID', 'ASK' or 'BID'")
 
+        if end_date <= start_date:
+            raise ValueError("End date must be on or after start date")
+
         df = self.generate_dataframe(start_date=start_date, end_date=end_date)
         start_price = df.ix[start_date][rate]
         end_price = df.ix[end_date][rate]
