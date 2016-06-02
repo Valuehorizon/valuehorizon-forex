@@ -23,16 +23,16 @@ if not settings.configured:
     settings.configure(**test_settings.__dict__)
 
 
-from django_coverage.coverage_runner import CoverageRunner
+#from django_coverage.coverage_runner import CoverageRunner
 from django_nose import NoseTestSuiteRunner
 
 
-class NoseCoverageTestRunner(CoverageRunner, NoseTestSuiteRunner):
+class NoseCoverageTestRunner(NoseTestSuiteRunner):
     """Custom test runner that uses nose and coverage"""
     def run_tests(self, *args, **kwargs):
         results = super(NoseCoverageTestRunner, self).run_tests(
             *args, **kwargs)
-        coverage._the_coverage.data.write_file('.coverage')
+        coverage.CoverageData().write_file('.coverage')
         return results
 
 
