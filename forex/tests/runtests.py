@@ -7,24 +7,15 @@ Via ``settings.configure`` you will be able to set all necessary settings
 for your app and run the tests as if you were calling ``./manage.py test``.
 
 """
-import re
-import sys
 
 from django.conf import settings
-
+from django_nose import NoseTestSuiteRunner
+import sys
 import coverage
-from fabric.api import abort, lcd, local
-from fabric.colors import green, red
-
 import forex.settings.test_settings as test_settings
-
 
 if not settings.configured:
     settings.configure(**test_settings.__dict__)
-
-
-#from django_coverage.coverage_runner import CoverageRunner
-from django_nose import NoseTestSuiteRunner
 
 
 class NoseCoverageTestRunner(NoseTestSuiteRunner):
@@ -37,7 +28,6 @@ class NoseCoverageTestRunner(NoseTestSuiteRunner):
         cov.stop()
         cov.save()
         cov.html_report()
-        #coverage.CoverageData().write_file('.coverage')
         return results
 
 

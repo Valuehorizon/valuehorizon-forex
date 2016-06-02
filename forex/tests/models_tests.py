@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.core.validators import ValidationError
 
 # Import Valuehorizon libraries
-from ..models import Currency, CurrencyPrice, convert_currency, conversion_factor
+from ..models import Currency, CurrencyPrice, convert_currency
 from ..models import DATEFRAME_START_DATE
 
 # Import other libraries
@@ -13,25 +13,26 @@ from datetime import date
 from decimal import Decimal
 import pandas as pd
 
+
 class CurrencyModelTests(TestCase):
     def setUp(self):
         Currency.objects.create(name="Test Dollar", symbol="TEST")
         test_curr1 = Currency.objects.get(symbol="TEST")
 
         CurrencyPrice.objects.create(currency=test_curr1,
-            date=date(2015,1,1),
-            ask_price = 4,
-            bid_price = 3)
+            date=date(2015, 1, 1),
+            ask_price=4,
+            bid_price=3)
 
         CurrencyPrice.objects.create(currency=test_curr1,
-            date=date(2015,1,3),
-            ask_price = 6,
-            bid_price = 5)
+            date=date(2015, 1, 3),
+            ask_price=6,
+            bid_price=5)
 
         CurrencyPrice.objects.create(currency=test_curr1,
-            date=date(2015,1,5),
-            ask_price = 8,
-            bid_price = 7)
+            date=date(2015, 1, 5),
+            ask_price=8,
+            bid_price=7)
 
     def field_tests(self):
         required_fields = [u'id', 'name', 'symbol', 'ascii_symbol', 'num_code', 'digits', 'description', 'date_created', 'date_modified']
@@ -41,7 +42,7 @@ class CurrencyModelTests(TestCase):
     def test_unicode(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
         test_curr1.save()
-        self.assertEqual(test_curr1.__unicode__(), "Test Dollar, TEST")        
+        self.assertEqual(test_curr1.__unicode__(), "Test Dollar, TEST")
 
     def test_dataframe_generation_base(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
@@ -68,9 +69,9 @@ class CurrencyPriceModelTests(TestCase):
         Currency.objects.create(name="Test Dollar", symbol="TEST")
         test_curr1 = Currency.objects.get(symbol="TEST")
         CurrencyPrice.objects.create(currency=test_curr1,
-            date=date(2015,1,1),
-            ask_price = 4,
-            bid_price = 3)
+            date=date(2015, 1, 1),
+            ask_price=4,
+            bid_price=3)
 
     def field_tests(self):
         required_fields = ['id', 'currency', 'date', 'ask_price', 'bid_price', 'date_created', 'date_modified']
@@ -80,13 +81,14 @@ class CurrencyPriceModelTests(TestCase):
     def test_unicode(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
         test_curr1.save()
-        test_price1 = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015,1,1))
+        test_price1 = CurrencyPrice.objects.get(currency=test_curr1,
+                                                date=date(2015, 1, 1))
         test_price1.save()
-        self.assertEqual(test_price1.__unicode__(), "Test Dollar, TEST, 2015-01-01") 
+        self.assertEqual(test_price1.__unicode__(), "Test Dollar, TEST, 2015-01-01")
 
     def test_ask_price_min_validation(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
-        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015,1,1))
+        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015, 1, 1))
         price.ask_price = 0
         price.bid_price = 0
         price.save()
@@ -101,7 +103,8 @@ class CurrencyPriceModelTests(TestCase):
 
     def test_bid_price_min_validation(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
-        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015,1,1))
+        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015,
+                                                                         1, 1))
         price.bid_price = 0
         price.save()
         self.assertEqual(price.bid_price, Decimal('0'))
@@ -115,7 +118,7 @@ class CurrencyPriceModelTests(TestCase):
 
     def test_bid_ask_validity(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
-        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015,1,1))
+        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015, 1, 1))
 
         price.bid_price = 50
         price.ask_price = 40
@@ -132,11 +135,10 @@ class CurrencyPriceModelTests(TestCase):
         price.bid_price = 50
         price.ask_price = 50
         self.assertEqual(price.save(), None)
-        
 
     def test_mid_price(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
-        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015,1,1))
+        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015, 1, 1))
         price.ask_price = 5
         price.bid_price = 4
         price.save()
@@ -144,7 +146,7 @@ class CurrencyPriceModelTests(TestCase):
 
     def test_spread(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
-        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015,1,1))
+        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015, 1, 1))
         price.ask_price = 4
         price.bid_price = 3
         price.save()
@@ -152,33 +154,33 @@ class CurrencyPriceModelTests(TestCase):
 
     def test_ask_us(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
-        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015,1,1))
+        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015, 1, 1))
 
         price.ask_price = Decimal('3')
         price.save()
-        self.assertEqual(price.ask_price_us, 1/Decimal('3'))
+        self.assertEqual(price.ask_price_us, 1 / Decimal('3'))
 
         price.ask_price = 0
         try:
-            test = price.ask_price_us
+            price.ask_price_us
             raise AssertionError("Price should not be zero")
         except ZeroDivisionError:
             pass
 
     def test_bid_us(self):
         test_curr1 = Currency.objects.get(symbol="TEST")
-        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015,1,1))
-
+        price = CurrencyPrice.objects.get(currency=test_curr1, date=date(2015, 1, 1))
         price.bid_price = Decimal('3')
         price.save()
-        self.assertEqual(price.bid_price_us, 1/Decimal('3'))
+        self.assertEqual(price.bid_price_us, 1 / Decimal('3'))
 
         price.bid_price = 0
         try:
-            test = price.bid_price_us
+            price.bid_price_us
             raise AssertionError("Price should not be zero")
         except ZeroDivisionError:
             pass
+
 
 class CurrencyPriceDataFrame(TestCase):
     def setUp(self):
@@ -187,28 +189,11 @@ class CurrencyPriceDataFrame(TestCase):
         Currency.objects.create(name="Test Dollar3", symbol="TEST3")
         test_curr1 = Currency.objects.get(symbol="TEST1")
         test_curr2 = Currency.objects.get(symbol="TEST2")
-        test_curr3 = Currency.objects.get(symbol="TEST3")
 
-        CurrencyPrice.objects.create(currency=test_curr1,
-            date=date(2015,1,1),
-            ask_price = 4,
-            bid_price = 3)
-
-        CurrencyPrice.objects.create(currency=test_curr1,
-            date=date(2015,1,15),
-            ask_price = 8,
-            bid_price = 6)
-
-
-        CurrencyPrice.objects.create(currency=test_curr2,
-            date=date(2015,2,1),
-            ask_price = 10,
-            bid_price = 9)
-
-        CurrencyPrice.objects.create(currency=test_curr2,
-            date=date(2015,2,15),
-            ask_price = 11,
-            bid_price = 7)
+        CurrencyPrice.objects.create(currency=test_curr1, date=date(2015, 1, 1), ask_price=4, bid_price=3)
+        CurrencyPrice.objects.create(currency=test_curr1, date=date(2015, 1, 15), ask_price=8, bid_price=6)
+        CurrencyPrice.objects.create(currency=test_curr2, date=date(2015, 2, 1), ask_price=10, bid_price=9)
+        CurrencyPrice.objects.create(currency=test_curr2, date=date(2015, 2, 15), ask_price=11, bid_price=7)
 
     def test_no_symbols_no_dates(self):
         df = CurrencyPrice.objects.generate_dataframe(symbols=None, date_index=None)
@@ -216,10 +201,10 @@ class CurrencyPriceDataFrame(TestCase):
         self.assertEqual(set(df.index), set(pd.date_range(DATEFRAME_START_DATE, date.today())))
 
     def test_with_symbols_and_dates(self):
-        df = CurrencyPrice.objects.generate_dataframe(symbols=["TEST1", "TEST2"], date_index=pd.date_range(date(2015,1,12),date(2015,1,26)))
+        df = CurrencyPrice.objects.generate_dataframe(symbols=["TEST1", "TEST2"], date_index=pd.date_range(date(2015, 1, 12), date(2015, 1, 26)))
         self.assertEqual(set(df.columns), set(["TEST1", "TEST2"]))
-        self.assertEqual(set(df.index), set(pd.date_range(date(2015,1,12), date(2015,1,26))))
-    
+        self.assertEqual(set(df.index), set(pd.date_range(date(2015, 1, 12), date(2015, 1, 26))))
+
     def test_nodata(self):
         df = CurrencyPrice.objects.generate_dataframe(symbols=["TEST3"], date_index=None)
         self.assertEqual(set(df.index), set(pd.date_range(DATEFRAME_START_DATE, date.today())))
@@ -231,10 +216,7 @@ class CurrencyPriceDataFrame(TestCase):
         df = CurrencyPrice.objects.generate_dataframe(symbols=["TEST1", "TEST2"], date_index=None)
         self.assertEqual(set(df.columns), set(["TEST1", "TEST2"]))
         self.assertEqual(set(df.index), set(pd.date_range(DATEFRAME_START_DATE, date.today())))
-        self.assertEqual(df.loc[date(2015,1,10)]['TEST1'], Decimal('3.5'))
-
-
-
+        self.assertEqual(df.loc[date(2015, 1, 10)]['TEST1'], Decimal('3.5'))
 
 
 class ConvertCurrencyTests(TestCase):
@@ -242,38 +224,41 @@ class ConvertCurrencyTests(TestCase):
         Currency.objects.create(name="Test Dollar", symbol="TEST")
         test_curr1 = Currency.objects.get(symbol="TEST")
         CurrencyPrice.objects.create(currency=test_curr1,
-            date=date(2015,1,1),
-            ask_price = 4,
-            bid_price = 3)
+            date=date(2015, 1, 1),
+            ask_price=4,
+            bid_price=3)
 
         Currency.objects.create(name="Test Dollar2", symbol="TEST2")
         test_curr2 = Currency.objects.get(symbol="TEST2")
         CurrencyPrice.objects.create(currency=test_curr2,
-            date=date(2015,1,1),
-            ask_price = 8,
-            bid_price = 6)
+            date=date(2015, 1, 1),
+            ask_price=8,
+            bid_price=6)
 
         Currency.objects.create(name="Test Dollar3", symbol="TEST3")
         test_curr2 = Currency.objects.get(symbol="TEST3")
         CurrencyPrice.objects.create(currency=test_curr2,
-            date=date(2016,1,1),
-            ask_price = 10,
-            bid_price = 9)
+            date=date(2016, 1, 1),
+            ask_price=10,
+            bid_price=9)
 
     def test_convert_equal_currency(self):
-        self.assertEqual(convert_currency("TEST", "TEST", 45, date(2015,1,1)), 45)
-        self.assertEqual(convert_currency("TEST", "TEST", -45, date(2015,1,1)), -45)
-        self.assertEqual(convert_currency("TEST", "TEST", 45, date(2015,1,30)), 45)
-        self.assertEqual(convert_currency("TEST", "TEST", -45, date(2015,1,30)), -45)
+        self.assertEqual(convert_currency("TEST", "TEST", 45, date(2015, 1, 1)), 45)
+        self.assertEqual(convert_currency("TEST", "TEST", -45, date(2015, 1, 1)), -45)
+        self.assertEqual(convert_currency("TEST", "TEST", 45, date(2015, 1, 30)), 45)
+        self.assertEqual(convert_currency("TEST", "TEST", -45, date(2015, 1, 30)), -45)
 
     def test_convert_currency_no_data(self):
-        self.assertEqual(convert_currency("TEST", "TEST2", -45, date(2015,1,15)), None)
-        self.assertEqual(convert_currency("TEST", "TEST3", -45, date(2015,1,1)), None)
+        self.assertEqual(convert_currency("TEST", "TEST2", -45, date(2015, 1, 15)), None)
+        self.assertEqual(convert_currency("TEST", "TEST3", -45, date(2015, 1, 1)), None)
 
     def test_convert_currency_float(self):
-        self.assertEqual(convert_currency("TEST", "TEST2", float(4.5), date(2015,1,1)), float(9))
-        self.assertEqual(convert_currency("TEST", "TEST2", 4.5, date(2015,1,1)), 9.0)
-        self.assertEqual(convert_currency("TEST", "TEST2", Decimal('4.5'), date(2015,1,1)), Decimal('9.0000'))
-        self.assertEqual(convert_currency("TEST", "TEST2", '-45', date(2015,1,1)), None)
-
-
+        self.assertEqual(convert_currency("TEST", "TEST2", float(4.5), date(2015, 1, 1)), float(9))
+        self.assertEqual(convert_currency("TEST", "TEST2", pd.np.float(4.5), date(2015, 1, 1)), pd.np.float(9))
+        self.assertEqual(convert_currency("TEST", "TEST2", pd.np.float16(4.5), date(2015, 1, 1)), pd.np.float16(9))
+        self.assertEqual(convert_currency("TEST", "TEST2", pd.np.float32(4.5), date(2015, 1, 1)), pd.np.float32(9))
+        self.assertEqual(convert_currency("TEST", "TEST2", pd.np.float64(4.5), date(2015, 1, 1)), pd.np.float64(9))
+        self.assertEqual(convert_currency("TEST", "TEST2", pd.np.float128(4.5), date(2015, 1, 1)), pd.np.float128(9))
+        self.assertEqual(convert_currency("TEST", "TEST2", 4.5, date(2015, 1, 1)), 9.0)
+        self.assertEqual(convert_currency("TEST", "TEST2", Decimal('4.5'), date(2015, 1, 1)), Decimal('9.0000'))
+        self.assertEqual(convert_currency("TEST", "TEST2", '-45', date(2015, 1, 1)), None)
