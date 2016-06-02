@@ -70,10 +70,7 @@ class Currency(models.Model):
         start_price = df.ix[start_date][rate]
         end_price = df.ix[end_date][rate]
 
-        try:
-            currency_return = (end_price / start_price) - 1.0
-        except:
-            currency_return = None
+        currency_return = (end_price / start_price) - 1.0
 
         return currency_return
 
@@ -110,12 +107,12 @@ class CurrencyPriceManager(Manager):
 
         if price_type == "mid":
             df['price'] = (df['ask_price'] + df['bid_price']) / 2
-        elif price_type == "ask_price":
+        elif price_type == "ask":
             df['price'] = df['ask_price']
-        elif price_type == "bid_price":
+        elif price_type == "bid":
             df['price'] = df['bid_price']
         else:
-            raise ValueError("price_type must be on of 'ask', 'bid' or 'mid'")
+            raise ValueError("Incorrect price_type (%s) must be on of 'ask', 'bid' or 'mid'" % str(price_type))
 
         df = df.pivot(index='date', columns='symbol', values='price')
         df = df.reindex(date_index)
@@ -212,11 +209,8 @@ class CurrencyPrice(models.Model):
 
 def conversion_factor(from_symbol, to_symbol, date):
     """
-    Generates a multiplying factor used to convert tow currencies
+    Generates a multiplying factor used to convert two currencies
     """
-
-    if from_symbol == to_symbol:
-        return Decimal('1.0')
 
     from_currency = Currency.objects.get(symbol=from_symbol)
     try:

@@ -26,13 +26,25 @@ Start by creating a new ``virtualenv`` for your project ::
 
 Next install ``numpy`` and ``pandas`` and optionally ``scipy`` ::
 
-    pip install numpy==1.8.0
-    pip install scipy==0.13.3
+    pip install numpy==1.1.0
     pip install pandas==0.13.0
 
 Finally, install ``valuehorizon-forex`` using ``pip``::
 
     pip install valuehorizon-forex
+
+Usage
+============
+
+Let's start by loading some sample data.::
+
+    python manage.py load_fixtures --settings=my_settings_file
+
+This dataset contains the exchange rate data for the US Dollar to Euro (USD/EUR) from 2013-01-01 to 2015-12-31. In a 
+django shell, we can try the following::
+
+    euro = Currency.objects.get(symbol="EUR")
+
 
 Contributing
 ============

@@ -218,6 +218,19 @@ class CurrencyPriceDataFrame(TestCase):
         self.assertEqual(set(df.index), set(pd.date_range(DATEFRAME_START_DATE, date.today())))
         self.assertEqual(df.loc[date(2015, 1, 10)]['TEST1'], Decimal('3.5'))
 
+    def test_price_types(self):
+        df = CurrencyPrice.objects.generate_dataframe(symbols=["TEST1", "TEST2"], date_index=None)
+        self.assertEqual(df.loc[date(2015, 1, 10)]['TEST1'], Decimal('3.5'))
+
+        df = CurrencyPrice.objects.generate_dataframe(symbols=["TEST1", "TEST2"], date_index=None, price_type="mid")
+        self.assertEqual(df.loc[date(2015, 1, 10)]['TEST1'], Decimal('3.5'))
+
+        df = CurrencyPrice.objects.generate_dataframe(symbols=["TEST1", "TEST2"], date_index=None, price_type='ask')
+        self.assertEqual(df.loc[date(2015, 1, 10)]['TEST1'], Decimal('4'))
+
+        df = CurrencyPrice.objects.generate_dataframe(symbols=["TEST1", "TEST2"], date_index=None, price_type="bid")
+        self.assertEqual(df.loc[date(2015, 1, 10)]['TEST1'], Decimal('3'))
+
 
 class ComputeReturnTests(TestCase):
     def setUp(self):
