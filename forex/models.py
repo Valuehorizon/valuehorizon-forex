@@ -9,7 +9,7 @@ from decimal import Decimal
 from pandas import DataFrame, date_range
 
 PRICE_PRECISION = 4
-DATEFRAME_START_DATE = date(2005,1,1)
+DATEFRAME_START_DATE = date(2005, 1, 1)
 
 
 class Currency(models.Model):
@@ -27,7 +27,7 @@ class Currency(models.Model):
     # Cached Data
     date_modified = models.DateTimeField(null=True, blank=True, editable=False, auto_now=True)
     date_created = models.DateTimeField(null=True, blank=True, editable=False, auto_now_add=True)
-    
+
     class Meta:
         verbose_name_plural = 'Currencies'
         verbose_name = 'Currency'
@@ -36,40 +36,24 @@ class Currency(models.Model):
     def __unicode__(self):
         return u'%s, %s' % (unicode(self.name), unicode(self.symbol))
 
-    def get_verbose_name(self):
-        """
-        Fetch verbose name from _meta. This is useful if we want to do haystack
-        faceting on the model's objects.
-        """
-        return self._meta.verbose_name
-    
-    def get_verbose_name_plural(self):
-        """
-        Fetch plural verbose name from _meta. This is useful if we want to do haystack
-        faceting on the model's objects.
-        """
-        return self._meta.verbose_name_plural
-
-    
     def generate_dataframe(self, start_date=None, end_date=None):
         """
         """
         first_series_point = CurrencyPrice.objects.filter(currency=self)[0]
         last_series_point = CurrencyPrice.objects.filter(currency=self).reverse()[0]
-        start_date = first_series_point.date if start_date == None else max(first_series_point.date, start_date)
-        temp_start_date = start_date - timedelta(days=3) # Add lag
-        end_date = last_series_point.date if end_date == None else min(last_series_point.date, end_date)
-            
+        start_date = first_series_point.date if start_date is None else max(first_series_point.date, start_date)
+        temp_start_date = start_date - timedelta(days=3)  # Add lag
+        end_date = last_series_point.date if end_date is None else min(last_series_point.date, end_date)
         currency_date = CurrencyPrice.objects.filter(currency=self, date__gte=temp_start_date, date__lte=end_date).values_list('date', 'ask_price', 'bid_price')
         currency_data_array = np.core.records.fromrecords(currency_date, names=['DATE', "ASK", "BID"])
         df = DataFrame.from_records(currency_data_array, index='DATE').astype(float)
         df['MID'] = (df['ASK'] + df['BID']) / 2.0
         df['CHANGE'] = df['MID'].pct_change()
-        
-        required_dates = date_range(start_date,end_date)
+
+        required_dates = date_range(start_date, end_date)
         df = df.reindex(required_dates)
         df = df.fillna(method='ffill')
-        
+
         return df
 
     def compute_return(self, start_date, end_date, rate="MID"):
@@ -91,9 +75,6 @@ class Currency(models.Model):
         return currency_return
 
 
-
-
-
 class CurrencyPriceManager(Manager):
     """ Adds some added functionality """
 
@@ -102,27 +83,26 @@ class CurrencyPriceManager(Manager):
         Generate a dataframe consisting of the currency prices (specified by symbols)
         from the start to end date
         """
-        
+
         # Set defaults if necessary
-        if symbols == None:
+        if symbols is None:
             symbols = list(Currency.objects.all().values_list('symbol', flat=True))
         try:
             start_date = date_index[0]
-            end_date = date_index[-1]    
+            end_date = date_index[-1]
         except:
             start_date = DATEFRAME_START_DATE
-            end_date = date.today()    
+            end_date = date.today()
         date_index = date_range(start_date, end_date)
-        
-        currency_price_data = CurrencyPrice.objects.filter(currency__symbol__in=symbols, 
-                                                            date__gte=date_index[0],
-                                                            date__lte=date_index[-1]).values_list('date', 'currency__symbol', 'ask_price', 'bid_price')
+
+        currency_price_data = CurrencyPrice.objects.filter(currency__symbol__in=symbols,
+                                                           date__gte=date_index[0],
+                                                           date__lte=date_index[-1]).values_list('date', 'currency__symbol', 'ask_price', 'bid_price')
         try:
             forex_data_array = np.core.records.fromrecords(currency_price_data, names=['date', 'symbol', 'ask_price', 'bid_price'])
         except IndexError:
-            forex_data_array = np.core.records.fromrecords([(date(1900,1,1) , "", 0, 0)], names=['date', 'symbol', 'ask_price', 'bid_price'])
+            forex_data_array = np.core.records.fromrecords([(date(1900, 1, 1), "", 0, 0)], names=['date', 'symbol', 'ask_price', 'bid_price'])
         df = DataFrame.from_records(forex_data_array, index='date')
-        
         df['date'] = df.index
 
         if price_type == "mid":
@@ -133,7 +113,7 @@ class CurrencyPriceManager(Manager):
             df['price'] = df['bid_price']
         else:
             raise ValueError("price_type must be on of 'ask', 'bid' or 'mid'")
-        
+
         df = df.pivot(index='date', columns='symbol', values='price')
         df = df.reindex(date_index)
         df = df.fillna(method="ffill")
@@ -141,9 +121,9 @@ class CurrencyPriceManager(Manager):
         for unlisted_symbol in unlisted_symbols:
             df[unlisted_symbol] = np.nan
         df = df[symbols]
-        
+
         return df
-        
+
 
 class CurrencyPrice(models.Model):
     """
@@ -152,25 +132,25 @@ class CurrencyPrice(models.Model):
 
     currency = models.ForeignKey(Currency)
     date = models.DateField()
-    
+
     # Price Data per $1 of US
     ask_price = models.DecimalField(max_digits=20, decimal_places=PRICE_PRECISION,
                                     validators=[MinValueValidator(Decimal('0.00'))])
     bid_price = models.DecimalField(max_digits=20, decimal_places=PRICE_PRECISION,
                                     validators=[MinValueValidator(Decimal('0.00'))])
-    
+
     # Cached Data
     date_modified = models.DateTimeField(null=True, blank=True, editable=False, auto_now=True)
     date_created = models.DateTimeField(null=True, blank=True, editable=False, auto_now_add=True)
-    
+
     # Add custom managers
-    objects=CurrencyPriceManager()
+    objects = CurrencyPriceManager()
 
     class Meta:
         verbose_name_plural = 'Currency Prices'
         verbose_name = 'Currency Price'
         ordering = ['date', ]
-        unique_together=['date', 'currency']
+        unique_together = ['date', 'currency']
         get_latest_by = "date"
 
     def __unicode__(self):
@@ -188,8 +168,8 @@ class CurrencyPrice(models.Model):
         if self.ask_price < self.bid_price:
             raise ValidationError("Ask price must be at least Bid price")
 
-        super(CurrencyPrice, self).save(*args, **kwargs) # Call the "real" save() method.
-    
+        super(CurrencyPrice, self).save(*args, **kwargs)  # Call the "real" save() method.
+
     @property
     def mid_price(self):
         """
@@ -203,7 +183,7 @@ class CurrencyPrice(models.Model):
         Compute the difference between bid and ask prices
         """
         return (self.ask_price - self.bid_price)
-    
+
     @property
     def ask_price_us(self):
         """
@@ -213,25 +193,25 @@ class CurrencyPrice(models.Model):
         if self.ask_price != 0:
             return 1 / Decimal(str(self.ask_price))
         else:
-            raise ZeroDivisionError('Ask price is zero')   
-        
+            raise ZeroDivisionError('Ask price is zero')
+
     @property
     def bid_price_us(self):
         """
         Calculate the bid_price in USD. This is the inverse
         of the bid price.
-        """        
+        """
         if self.bid_price != 0:
             return 1 / Decimal(str(self.bid_price))
         else:
             raise ZeroDivisionError('Bid price is zero')
-    
+
 
 def conversion_factor(from_symbol, to_symbol, date):
     """
     Generates a multiplying factor used to convert tow currencies
     """
-    
+
     if from_symbol == to_symbol:
         return Decimal('1.0')
 
@@ -241,14 +221,14 @@ def conversion_factor(from_symbol, to_symbol, date):
     except CurrencyPrice.DoesNotExist:
         print "Cannot fetch prices for %s on %s" % (str(from_currency), str(date))
         return None
-    
+
     to_currency = Currency.objects.get(symbol=to_symbol)
     try:
         to_currency_price = CurrencyPrice.objects.get(currency=to_currency, date=date).mid_price
     except CurrencyPrice.DoesNotExist:
         print "Cannot fetch prices for %s on %s" % (str(to_currency), str(date))
-        return None        
-    
+        return None
+
     return to_currency_price / from_currency_price
 
 
@@ -260,7 +240,7 @@ def convert_currency(from_symbol, to_symbol, value, date):
         return value
 
     factor = conversion_factor(from_symbol, to_symbol, date)
-    
+
     if type(value) == float:
         output = value * float(factor)
     elif type(value) == Decimal:
@@ -269,6 +249,5 @@ def convert_currency(from_symbol, to_symbol, value, date):
         output = float(value) * float(factor)
     else:
         output = None
-    
-    return output
 
+    return output

@@ -2,6 +2,7 @@
 *.egg-info/
 *.pyc
 *~
+*.swp
 *coverage/
 .tox/
 db.sqlite
@@ -12,3 +13,4 @@ docs/source/_static/
 docs/source/_templates/
 local_settings.py
 build/
+htmlcov/
