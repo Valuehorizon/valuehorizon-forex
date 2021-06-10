@@ -6,7 +6,7 @@ ipdb
 mixer
 mock
 tox
-Django==1.9.6
+Django==2.2.24
 numpy==1.11.0
 pandas==0.13.0
 lxml==3.4.4
