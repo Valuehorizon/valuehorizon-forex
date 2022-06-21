@@ -7,6 +7,6 @@ mixer
 mock
 tox
 Django==1.9.6
-numpy==1.11.0
+numpy==1.22.0
 pandas==0.13.0
 lxml==3.4.4
